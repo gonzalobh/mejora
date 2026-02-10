@@ -1,20 +1,20 @@
 import OpenAI from 'openai';
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido.' });
   }
 
-  if (!process.env.OPENAI_API_KEY) {
+  const apiKey = process.env.OPENAI_API_KEY || process.env.mejora;
+
+  if (!apiKey) {
     return res.status(500).json({
-      error: 'Falta configurar OPENAI_API_KEY.',
-      details: 'OPENAI_API_KEY no está definido en las variables de entorno.',
+      error: 'Missing API key',
+      hint: "Set OPENAI_API_KEY (recommended) or 'mejora' env var",
     });
   }
+
+  const client = new OpenAI({ apiKey });
 
   try {
     const { text } = req.body || {};
