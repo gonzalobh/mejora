@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mejora</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app__header">
+        <h1>Mejora</h1>
+        <p>Mejora tu texto en español y obtén traducción al inglés.</p>
+      </header>
+
+      <section class="toolbar">
+        <button id="mejorarBtn" class="button button--primary">Mejorar y Traducir</button>
+        <button id="limpiarBtn" class="button">Limpiar</button>
+        <span id="status" class="status" role="status" aria-live="polite"></span>
+      </section>
+
+      <section id="error" class="error" role="alert" aria-live="assertive"></section>
+
+      <section class="columns">
+        <article class="panel">
+          <div class="panel__header">
+            <h2>Entrada (ES)</h2>
+            <button class="button button--ghost" data-copy="inputText">Copiar</button>
+          </div>
+          <textarea
+            id="inputText"
+            placeholder="Escribe aquí tu texto original..."
+            aria-label="Texto de entrada en español"
+          ></textarea>
+        </article>
+
+        <article class="panel">
+          <div class="panel__header">
+            <h2>Texto Mejorado (ES)</h2>
+            <button class="button button--ghost" data-copy="mejoradoText">Copiar</button>
+          </div>
+          <textarea
+            id="mejoradoText"
+            placeholder="Aquí aparecerá el texto mejorado..."
+            aria-label="Texto mejorado en español"
+            readonly
+          ></textarea>
+        </article>
+
+        <article class="panel">
+          <div class="panel__header">
+            <h2>Traducción Inglés (EN)</h2>
+            <button class="button button--ghost" data-copy="englishText">Copiar</button>
+          </div>
+          <textarea
+            id="englishText"
+            placeholder="Here the English translation will appear..."
+            aria-label="Traducción al inglés"
+            readonly
+          ></textarea>
+        </article>
+      </section>
+    </main>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>

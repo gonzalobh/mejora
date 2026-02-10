@@ -1,0 +1,9 @@
+{
+  "name": "mejora",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "openai": "^4.86.2"
+  }
+}
