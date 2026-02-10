@@ -10,7 +10,10 @@ export default async function handler(req, res) {
   }
 
   if (!process.env.OPENAI_API_KEY) {
-    return res.status(500).json({ error: 'Falta configurar OPENAI_API_KEY.' });
+    return res.status(500).json({
+      error: 'Falta configurar OPENAI_API_KEY.',
+      details: 'OPENAI_API_KEY no está definido en las variables de entorno.',
+    });
   }
 
   try {
@@ -65,6 +68,9 @@ export default async function handler(req, res) {
     return res.status(200).json({ mejorado, english });
   } catch (error) {
     console.error('Error en /api/mejorar:', error);
-    return res.status(500).json({ error: 'Error interno al procesar la solicitud.' });
+    return res.status(500).json({
+      error: 'Error interno al procesar la solicitud.',
+      details: error.message,
+    });
   }
 }

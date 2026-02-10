@@ -66,10 +66,19 @@ mejorarBtn.addEventListener('click', async () => {
       body: JSON.stringify({ text }),
     });
 
-    const data = await response.json();
+    const { data, isJson } = await parseApiResponse(response);
 
     if (!response.ok) {
-      throw new Error(data.error || 'Error al procesar el texto.');
+      const safeMessage =
+        (isJson && data && data.error) ||
+        'No se pudo procesar la solicitud. Inténtalo de nuevo.';
+      showError(safeMessage);
+      return;
+    }
+
+    if (!isJson || !data) {
+      showError('La respuesta del servidor no tiene un formato válido.');
+      return;
     }
 
     mejoradoText.value = data.mejorado || '';
@@ -80,6 +89,15 @@ mejorarBtn.addEventListener('click', async () => {
     setLoading(false);
   }
 });
+
+async function parseApiResponse(response) {
+  try {
+    const data = await response.json();
+    return { data, isJson: true };
+  } catch {
+    return { data: null, isJson: false };
+  }
+}
 
 function setLoading(isLoading) {
   mejorarBtn.disabled = isLoading;
