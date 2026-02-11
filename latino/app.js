@@ -22,7 +22,6 @@ optimizeBtn.addEventListener('click', async () => {
     .filter((checkbox) => checkbox.checked)
     .map((checkbox) => checkbox.value);
 
-  // Default tone if none selected
   if (!selectedTones.length) {
     selectedTones = ['professional'];
   }
@@ -46,11 +45,11 @@ optimizeBtn.addEventListener('click', async () => {
       body: JSON.stringify(payload),
     });
 
-    const textResponse = await response.text();
+    const rawText = await response.text();
 
-    let data = null;
+    let data;
     try {
-      data = JSON.parse(textResponse);
+      data = JSON.parse(rawText);
     } catch {
       showError('Server returned invalid JSON.');
       improvedSpanish.textContent = '';
@@ -58,14 +57,14 @@ optimizeBtn.addEventListener('click', async () => {
     }
 
     if (!response.ok) {
-      showError(data?.error || 'Unable to optimize this request.');
+      showError(data?.error || 'Internal server error.');
       improvedSpanish.textContent = '';
       return;
     }
 
     renderResponse(data);
 
-  } catch (error) {
+  } catch (err) {
     showError('Network error. Please try again.');
     improvedSpanish.textContent = '';
   } finally {
@@ -74,15 +73,19 @@ optimizeBtn.addEventListener('click', async () => {
 });
 
 function renderResponse(data) {
+  if (!data || typeof data !== 'object') {
+    showError('Unexpected response format.');
+    return;
+  }
+
   const improvedText =
-    data?.improved_spanish ||
-    data?.mejorado ||
-    data?.improvedSpanish ||
+    data.improved_spanish ||
+    data.mejorado ||
     '';
 
   improvedSpanish.textContent = improvedText || 'No improved Spanish returned.';
 
-  const toneResults = extractToneResults(data);
+  const toneResults = normalizeToneResults(data);
 
   if (!toneResults.length) {
     resultsContainer.textContent = 'No tone results returned.';
@@ -91,31 +94,31 @@ function renderResponse(data) {
 
   const fragment = document.createDocumentFragment();
 
-  toneResults.forEach((toneResult) => {
-    if (!toneResult?.text) return;
+  toneResults.forEach((result) => {
+    if (!result.text) return;
 
     const card = document.createElement('article');
     card.className = 'result-card';
 
     const title = document.createElement('h3');
-    title.textContent = capitalizeLabel(toneResult.tone || 'Tone');
+    title.textContent = capitalize(result.tone);
 
-    const text = document.createElement('p');
-    text.textContent = toneResult.text;
+    const body = document.createElement('p');
+    body.textContent = result.text;
 
     const score = document.createElement('p');
     score.className = 'result-meta';
-    score.textContent = `Naturalness score: ${formatMetaValue(toneResult.naturalness_score)}`;
+    score.textContent = `Naturalness score: ${safeValue(result.naturalness_score)}`;
 
     const flags = document.createElement('p');
     flags.className = 'result-meta';
-    flags.textContent = `Flags: ${formatFlags(toneResult.flags)}`;
+    flags.textContent = `Flags: ${formatArray(result.flags)}`;
 
-    const whyNatural = document.createElement('p');
-    whyNatural.className = 'result-meta';
-    whyNatural.textContent = `Why natural: ${formatMetaValue(toneResult.why_natural)}`;
+    const why = document.createElement('p');
+    why.className = 'result-meta';
+    why.textContent = `Why natural: ${formatArray(result.why_natural)}`;
 
-    card.append(title, text, score, flags, whyNatural);
+    card.append(title, body, score, flags, why);
     fragment.appendChild(card);
   });
 
@@ -123,40 +126,44 @@ function renderResponse(data) {
   resultsContainer.appendChild(fragment);
 }
 
-function extractToneResults(data) {
-  if (!data) return [];
-
-  if (data.results && typeof data.results === 'object') {
-    return Object.entries(data.results)
-      .filter(([_, value]) => value && typeof value === 'object')
-      .map(([tone, value]) => ({ tone, ...value }));
+function normalizeToneResults(data) {
+  if (!data.results || typeof data.results !== 'object') {
+    return [];
   }
 
-  return [];
+  return Object.entries(data.results)
+    .filter(([_, value]) => value && typeof value === 'object')
+    .map(([tone, value]) => ({
+      tone,
+      text: value.text || '',
+      naturalness_score: value.naturalness_score ?? 'N/A',
+      flags: value.flags || [],
+      why_natural: value.why_natural || []
+    }));
 }
 
-function formatFlags(flags) {
-  if (!flags || !Array.isArray(flags)) {
+function formatArray(arr) {
+  if (!Array.isArray(arr) || !arr.length) {
     return 'none';
   }
-  return flags.length ? flags.join(', ') : 'none';
+  return arr.join(', ');
 }
 
-function formatMetaValue(value) {
-  if (value === undefined || value === null || value === '') {
+function safeValue(val) {
+  if (val === undefined || val === null || val === '') {
     return 'N/A';
   }
-  return String(value);
+  return String(val);
 }
 
-function capitalizeLabel(label) {
-  if (!label) return '';
-  return label.charAt(0).toUpperCase() + label.slice(1);
+function capitalize(text) {
+  if (!text) return '';
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-function setLoading(isLoading) {
-  optimizeBtn.disabled = isLoading;
-  optimizeBtn.textContent = isLoading ? 'Optimizing…' : 'Optimize';
+function setLoading(state) {
+  optimizeBtn.disabled = state;
+  optimizeBtn.textContent = state ? 'Optimizing…' : 'Optimize';
 }
 
 function showError(message) {
