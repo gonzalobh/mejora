@@ -18,9 +18,14 @@ optimizeBtn.addEventListener('click', async () => {
     return;
   }
 
-  const selectedTones = toneCheckboxes
+  let selectedTones = toneCheckboxes
     .filter((checkbox) => checkbox.checked)
     .map((checkbox) => checkbox.value);
+
+  // Default tone if none selected
+  if (!selectedTones.length) {
+    selectedTones = ['professional'];
+  }
 
   const payload = {
     spanish_input: spanishText,
@@ -32,36 +37,36 @@ optimizeBtn.addEventListener('click', async () => {
   setLoading(true);
   clearError();
   improvedSpanish.textContent = 'Optimizing…';
-  resultsContainer.textContent = '';
+  resultsContainer.innerHTML = '';
 
   try {
     const response = await fetch('/api/mejorar', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
 
-    const { data, isJson } = await parseApiResponse(response);
+    const textResponse = await response.text();
 
-    if (!response.ok) {
-      const safeMessage =
-        (isJson && data && data.error) || 'Unable to optimize this request right now.';
-      showError(safeMessage);
+    let data = null;
+    try {
+      data = JSON.parse(textResponse);
+    } catch {
+      showError('Server returned invalid JSON.');
       improvedSpanish.textContent = '';
       return;
     }
 
-    if (!isJson || !data) {
-      showError('Invalid server response format.');
+    if (!response.ok) {
+      showError(data?.error || 'Unable to optimize this request.');
       improvedSpanish.textContent = '';
       return;
     }
 
     renderResponse(data);
+
   } catch (error) {
-    showError(error.message || 'Unable to complete the optimization request.');
+    showError('Network error. Please try again.');
     improvedSpanish.textContent = '';
   } finally {
     setLoading(false);
@@ -70,9 +75,12 @@ optimizeBtn.addEventListener('click', async () => {
 
 function renderResponse(data) {
   const improvedText =
-    data.improved_spanish || data.mejorado || data.improvedSpanish || 'No improved Spanish returned.';
+    data?.improved_spanish ||
+    data?.mejorado ||
+    data?.improvedSpanish ||
+    '';
 
-  improvedSpanish.textContent = improvedText;
+  improvedSpanish.textContent = improvedText || 'No improved Spanish returned.';
 
   const toneResults = extractToneResults(data);
 
@@ -84,6 +92,8 @@ function renderResponse(data) {
   const fragment = document.createDocumentFragment();
 
   toneResults.forEach((toneResult) => {
+    if (!toneResult?.text) return;
+
     const card = document.createElement('article');
     card.className = 'result-card';
 
@@ -91,7 +101,7 @@ function renderResponse(data) {
     title.textContent = capitalizeLabel(toneResult.tone || 'Tone');
 
     const text = document.createElement('p');
-    text.textContent = toneResult.text || 'No text provided.';
+    text.textContent = toneResult.text;
 
     const score = document.createElement('p');
     score.className = 'result-meta';
@@ -114,57 +124,34 @@ function renderResponse(data) {
 }
 
 function extractToneResults(data) {
-  if (Array.isArray(data.results)) {
-    return data.results;
-  }
+  if (!data) return [];
 
   if (data.results && typeof data.results === 'object') {
-    return Object.entries(data.results).map(([tone, value]) => ({ tone, ...value }));
+    return Object.entries(data.results)
+      .filter(([_, value]) => value && typeof value === 'object')
+      .map(([tone, value]) => ({ tone, ...value }));
   }
 
-  const knownTones = ['simple', 'professional', 'executive'];
-  const fallback = knownTones
-    .filter((tone) => data[tone] && typeof data[tone] === 'object')
-    .map((tone) => ({ tone, ...data[tone] }));
-
-  return fallback;
+  return [];
 }
 
 function formatFlags(flags) {
-  if (!flags) {
+  if (!flags || !Array.isArray(flags)) {
     return 'none';
   }
-
-  if (Array.isArray(flags)) {
-    return flags.length ? flags.join(', ') : 'none';
-  }
-
-  return String(flags);
+  return flags.length ? flags.join(', ') : 'none';
 }
 
 function formatMetaValue(value) {
   if (value === undefined || value === null || value === '') {
     return 'N/A';
   }
-
   return String(value);
 }
 
 function capitalizeLabel(label) {
-  if (!label) {
-    return '';
-  }
-
+  if (!label) return '';
   return label.charAt(0).toUpperCase() + label.slice(1);
-}
-
-async function parseApiResponse(response) {
-  try {
-    const data = await response.json();
-    return { data, isJson: true };
-  } catch {
-    return { data: null, isJson: false };
-  }
 }
 
 function setLoading(isLoading) {
@@ -173,9 +160,13 @@ function setLoading(isLoading) {
 }
 
 function showError(message) {
-  errorMessage.textContent = message;
+  if (errorMessage) {
+    errorMessage.textContent = message;
+  }
 }
 
 function clearError() {
-  errorMessage.textContent = '';
+  if (errorMessage) {
+    errorMessage.textContent = '';
+  }
 }
