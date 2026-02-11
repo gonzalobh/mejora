@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Latino</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <h1>Latino</h1>
+        <p>Write in Spanish. Sound native in English.</p>
+      </header>
+
+      <section id="errorMessage" class="error" role="alert" aria-live="assertive"></section>
+
+      <section class="layout" aria-label="Latino optimizer workspace">
+        <article class="panel panel--input">
+          <h2>Spanish Input</h2>
+          <label class="visually-hidden" for="spanishInput">Spanish Input</label>
+          <textarea
+            id="spanishInput"
+            placeholder="Escribe tu mensaje en español…"
+            aria-label="Spanish input"
+          ></textarea>
+
+          <fieldset class="options">
+            <legend>Options</legend>
+
+            <label class="option-row">
+              <input type="checkbox" id="antiLatino" />
+              <span>Anti-Latino Mode</span>
+            </label>
+
+            <p class="tone-title">Tone</p>
+            <label class="option-row">
+              <input type="checkbox" id="toneSimple" value="simple" />
+              <span>Simple</span>
+            </label>
+            <label class="option-row">
+              <input type="checkbox" id="toneProfessional" value="professional" />
+              <span>Professional</span>
+            </label>
+            <label class="option-row">
+              <input type="checkbox" id="toneExecutive" value="executive" />
+              <span>Executive</span>
+            </label>
+          </fieldset>
+
+          <button id="optimizeBtn" type="button">Optimize</button>
+        </article>
+
+        <article class="panel panel--output">
+          <section>
+            <h2>Improved Spanish</h2>
+            <div id="improvedSpanish" class="result-box" aria-live="polite"></div>
+          </section>
+
+          <section>
+            <h2>Results</h2>
+            <div id="resultsContainer" class="result-box" aria-live="polite"></div>
+          </section>
+        </article>
+      </section>
+    </main>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>
