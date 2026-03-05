@@ -99,6 +99,14 @@ function safeJsonParse(value) {
   try { return JSON.parse(value); } catch { return null; }
 }
 
+// Dialect instruction appended to translator prompts
+function getDialectInstruction(dialect) {
+  if (dialect === 'uk') {
+    return ' Use British English spelling, vocabulary, and conventions (e.g. colour, realise, whilst, lift instead of elevator, etc.).';
+  }
+  return ' Use American English spelling, vocabulary, and conventions.';
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido.' });
@@ -112,7 +120,7 @@ export default async function handler(req, res) {
   const client = new OpenAI({ apiKey });
 
   try {
-    const { text, context, spanish_input: spanishInput, mode, tone_preferences: tonePreferences } = req.body || {};
+    const { text, context, dialect, spanish_input: spanishInput, mode, tone_preferences: tonePreferences } = req.body || {};
 
     // ── Legacy /spanish_input flow ─────────────────────────────────────────
     if (typeof spanishInput === 'string' && spanishInput.trim()) {
@@ -199,8 +207,9 @@ export default async function handler(req, res) {
     }
 
     const ctx = typeof context === 'string' ? context.trim() : 'general';
+    const dialectSuffix = getDialectInstruction(dialect);
     const editorPrompt = EDITOR_PROMPTS[ctx] || EDITOR_PROMPTS.general;
-    const translatorPrompt = TRANSLATOR_PROMPTS[ctx] || TRANSLATOR_PROMPTS.general;
+    const translatorPrompt = (TRANSLATOR_PROMPTS[ctx] || TRANSLATOR_PROMPTS.general) + dialectSuffix;
 
     // Step 1: Improve Spanish first
     const mejoraResponse = await client.responses.create({

@@ -96,6 +96,39 @@
       animation: pulse 1s ease-in-out infinite;
     }
 
+    /* ── Dialect toggle ── */
+    .dialect-toggle {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .dialect-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-family: var(--font);
+      font-weight: 400;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-2);
+      transition: all 0.1s;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+    .dialect-btn + .dialect-btn { border-left: 1px solid var(--border); }
+    .dialect-btn.active {
+      background: var(--text);
+      color: #fff;
+      font-weight: 500;
+    }
+    .dialect-btn:hover:not(.active) { background: var(--surface-2); }
+
     /* ── Context chips ── */
     .context-bar {
       display: flex;
@@ -476,7 +509,13 @@
       <div class="sep"></div>
       <span class="header__tagline">Edición y traducción inteligente</span>
     </div>
-    <div id="autoPill" class="auto-pill">Auto</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="dialect-toggle">
+        <button class="dialect-btn active" data-dialect="us" title="American English">🇺🇸 US</button>
+        <button class="dialect-btn" data-dialect="uk" title="British English">🇬🇧 UK</button>
+      </div>
+      <div id="autoPill" class="auto-pill">Auto</div>
+    </div>
   </header>
 
   <!-- Context chips -->
@@ -675,6 +714,21 @@ const STORAGE_KEY = 'mejora:last-input';
 inputText.value = localStorage.getItem(STORAGE_KEY) || '';
 syncCount(inputText, 'cnt-input');
 
+// ── Dialect toggle ───────────────────────────────────────────────────────────
+let activeDialect = 'us';
+
+document.querySelectorAll('.dialect-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.dialect === activeDialect) return;
+    document.querySelectorAll('.dialect-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeDialect = btn.dataset.dialect;
+    // Re-translate if there's already content
+    const val = inputText.value.trim();
+    if (val) { clearTimeout(timer); runMejorar(val); }
+  });
+});
+
 // ── Context chips ────────────────────────────────────────────────────────────
 let activeCtx = 'general';
 
@@ -847,7 +901,7 @@ async function runMejorar(text) {
     const res = await fetch('/api/mejorar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, context: activeCtx }),
+      body: JSON.stringify({ text, context: activeCtx, dialect: activeDialect }),
     });
 
     let data = null;
