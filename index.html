@@ -1,586 +1,484 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Mejora</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <!-- Lucide icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600&family=Commit+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
     :root {
-      --bg: #fafaf9;
-      --surface: #ffffff;
-      --surface-2: #f5f5f3;
-      --border: #e9e9e6;
-      --border-subtle: #f0f0ee;
-      --text: #181816;
-      --text-2: #6b6b67;
-      --text-3: #b8b8b3;
-      --accent: #1d6fe0;
-      --accent-bg: #eff6ff;
-      --accent-border: #bfdbfe;
-      --green: #16a34a;
-      --green-bg: #f0fdf4;
-      --green-border: #bbf7d0;
-      --red: #dc2626;
-      --red-bg: #fef2f2;
-      --red-border: #fecaca;
-      --diff-add: #dcfce7;
-      --diff-add-text: #15803d;
-      --diff-del: #fee2e2;
-      --diff-del-text: #b91c1c;
-      --radius: 7px;
-      --font: 'DM Sans', -apple-system, sans-serif;
-      --mono: 'DM Mono', monospace;
-      --shadow: 0 1px 2px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.04);
+      /* Palette */
+      --paper:    #faf9f7;
+      --white:    #ffffff;
+      --sand:     #f2efe9;
+      --sand-2:   #e8e4dc;
+
+      --ink:      #1c1a17;
+      --ink-2:    #7a746b;
+      --ink-3:    #bdb8af;
+
+      /* Accent — warm amber/terracotta */
+      --a:        #c4622d;
+      --a-light:  #fdf0e8;
+      --a-border: #f0c4a8;
+      --a-dark:   #a34e22;
+
+      --border:   rgba(0,0,0,0.08);
+      --border-2: rgba(0,0,0,0.05);
+
+      --green:    #2d6a4f;
+      --green-bg: #eaf4ef;
+      --red:      #b91c1c;
+      --red-bg:   #fef2f2;
+      --red-bd:   #fecaca;
+
+      --diff-a:   #d8f3e8;
+      --diff-at:  #1a5c38;
+      --diff-d:   #fde8e8;
+      --diff-dt:  #922;
+
+      --r:     6px;
+      --r-lg:  10px;
+      --r-xl:  14px;
+      --r-f:   999px;
+
+      --font:  'Bricolage Grotesque', system-ui, sans-serif;
+      --mono:  'Commit Mono', monospace;
+
+      --sh-card: 0 1px 2px rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.06);
+      --sh-lift: 0 4px 16px rgba(0,0,0,.07), 0 0 0 1px rgba(0,0,0,.06);
     }
 
-    html, body { height: 100%; }
-
-    body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      font-size: 14px;
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
+    html,body{height:100%}
+    body{
+      font-family:var(--font);
+      background:var(--paper);
+      color:var(--ink);
+      font-size:14px;
+      line-height:1.5;
+      -webkit-font-smoothing:antialiased;
     }
 
-    .app {
-      display: flex;
-      flex-direction: column;
-      height: 100dvh;
-      overflow: hidden;
+    .app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+
+    /* ────────────────────────────────────────
+       TOPBAR  — single line, everything lives here
+    ──────────────────────────────────────── */
+    .topbar{
+      height:52px;
+      display:flex;align-items:center;
+      padding:0 18px;
+      background:var(--white);
+      border-bottom:1px solid var(--border);
+      flex-shrink:0;
+      gap:0;
     }
 
-    /* ── Header ── */
-    .header {
-      display: flex;
-      align-items: center;
-      padding: 0 18px;
-      height: 46px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      flex-shrink: 0;
-      justify-content: space-between;
+    /* Wordmark */
+    .logo{
+      font-size:16px;font-weight:600;
+      color:var(--ink);letter-spacing:-.5px;
+      margin-right:6px;flex-shrink:0;
+      display:flex;align-items:center;gap:7px;
+    }
+    .logo__gem{
+      width:24px;height:24px;border-radius:8px;
+      background:var(--a);
+      display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;
+    }
+    .logo__gem svg{color:#fff}
+
+    /* Context chips — inside topbar */
+    .vdiv{width:1px;height:16px;background:var(--border);flex-shrink:0;margin:0 16px}
+
+    .chips{display:flex;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none}
+    .chips::-webkit-scrollbar{display:none}
+
+    .chip{
+      display:inline-flex;align-items:center;gap:4px;
+      height:28px;padding:0 10px;border-radius:var(--r-f);
+      font-size:12.5px;font-weight:400;font-family:var(--font);
+      cursor:pointer;border:1px solid transparent;
+      background:transparent;color:var(--ink-2);
+      transition:all .12s;white-space:nowrap;flex-shrink:0;
+    }
+    .chip:hover{background:var(--sand);color:var(--ink)}
+    .chip.active{
+      background:var(--a-light);
+      border-color:var(--a-border);
+      color:var(--a-dark);font-weight:500;
     }
 
-    .header__brand { display: flex; align-items: center; gap: 10px; }
-    .logo { font-size: 14px; font-weight: 500; color: var(--text); letter-spacing: -0.2px; }
-    .sep { width: 1px; height: 14px; background: var(--border); }
-    .header__tagline { font-size: 12.5px; color: var(--text-2); }
+    .topbar__gap{flex:1}
 
-    .auto-pill {
-      display: none;
-      align-items: center;
-      gap: 5px;
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--accent);
-      background: var(--accent-bg);
-      border: 1px solid var(--accent-border);
-      border-radius: 100px;
-      padding: 3px 9px;
+    /* Dialect toggle */
+    .dialect-toggle{
+      display:flex;height:30px;
+      border:1px solid var(--border);
+      border-radius:var(--r);
+      overflow:hidden;background:var(--sand);flex-shrink:0;
     }
-    .auto-pill.on { display: flex; }
-    .auto-pill::before {
-      content: '';
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      background: var(--accent);
-      animation: pulse 1s ease-in-out infinite;
+    .dialect-btn{
+      display:flex;align-items:center;gap:5px;padding:0 10px;
+      font-size:12px;font-family:var(--font);font-weight:400;
+      cursor:pointer;border:none;background:transparent;
+      color:var(--ink-2);transition:all .1s;white-space:nowrap;
     }
+    .dialect-btn+.dialect-btn{border-left:1px solid var(--border)}
+    .dialect-btn.active{background:var(--white);color:var(--ink);font-weight:500;box-shadow:var(--sh-card)}
+    .dialect-btn:hover:not(.active){color:var(--ink)}
 
-    /* ── Dialect toggle ── */
-    .dialect-toggle {
-      display: flex;
-      align-items: center;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-      flex-shrink: 0;
+    /* Auto pill */
+    .auto-pill{
+      display:none;align-items:center;gap:6px;
+      height:26px;padding:0 10px;
+      font-size:11px;font-weight:500;
+      color:var(--a);background:var(--a-light);
+      border:1px solid var(--a-border);border-radius:var(--r-f);
+      margin-left:10px;font-family:var(--mono);
     }
-    .dialect-btn {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 10px;
-      font-size: 12px;
-      font-family: var(--font);
-      font-weight: 400;
-      cursor: pointer;
-      border: none;
-      background: transparent;
-      color: var(--text-2);
-      transition: all 0.1s;
-      line-height: 1.4;
-      white-space: nowrap;
-    }
-    .dialect-btn + .dialect-btn { border-left: 1px solid var(--border); }
-    .dialect-btn.active {
-      background: var(--text);
-      color: #fff;
-      font-weight: 500;
-    }
-    .dialect-btn:hover:not(.active) { background: var(--surface-2); }
-
-    /* ── Context chips ── */
-    .context-bar {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 7px 18px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      flex-shrink: 0;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    .context-bar::-webkit-scrollbar { display: none; }
-
-    .context-label {
-      font-size: 11px;
-      color: var(--text-3);
-      font-weight: 500;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      margin-right: 4px;
-      flex-shrink: 0;
+    .auto-pill.on{display:flex}
+    .auto-pill::before{
+      content:'';width:5px;height:5px;
+      border-radius:50%;background:var(--a);
+      animation:pulse 1s ease-in-out infinite;
     }
 
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 11px;
-      border-radius: 100px;
-      font-size: 12.5px;
-      font-weight: 400;
-      font-family: var(--font);
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text-2);
-      transition: all 0.1s ease;
-      white-space: nowrap;
-      flex-shrink: 0;
+    /* ────────────────────────────────────────
+       ACTION STRIP  — Mejorar lives below topbar
+    ──────────────────────────────────────── */
+    .actionbar{
+      display:flex;align-items:center;gap:8px;
+      height:44px;padding:0 18px;
+      background:var(--white);
+      border-bottom:1px solid var(--border);
+      flex-shrink:0;
     }
-    .chip:hover { background: var(--surface-2); color: var(--text); }
-    .chip.active {
-      background: var(--text);
-      border-color: var(--text);
-      color: #fff;
-      font-weight: 500;
+    .actionbar__gap{flex:1}
+    .status{
+      display:none;align-items:center;gap:7px;
+      font-size:11.5px;color:var(--ink-2);font-family:var(--mono);
+    }
+    .status.on{display:flex}
+    .status__dot{
+      width:6px;height:6px;border-radius:50%;
+      background:var(--a);animation:pulse 1.1s ease-in-out infinite;
     }
 
-    /* ── Toolbar ── */
-    .toolbar {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 18px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      flex-shrink: 0;
+    /* ────────────────────────────────────────
+       BUTTONS  — one system, consistent height 32px
+    ──────────────────────────────────────── */
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:6px;
+      height:32px;padding:0 14px;border-radius:var(--r);
+      font-family:var(--font);font-size:13px;font-weight:500;
+      cursor:pointer;border:1px solid transparent;
+      transition:all .12s;white-space:nowrap;line-height:1;
+      position:relative;letter-spacing:-.1px;
     }
-    .toolbar__gap { flex: 1; }
+    .btn:disabled{opacity:.35;cursor:not-allowed}
 
-    .status {
-      display: none;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: var(--text-2);
+    .btn-primary{
+      background:var(--a);color:#fff;border-color:var(--a);
+      box-shadow:0 1px 3px rgba(196,98,45,.3);
     }
-    .status.on { display: flex; }
-    .status__dot {
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      background: var(--accent);
-      animation: pulse 1.1s ease-in-out infinite;
+    .btn-primary:hover:not(:disabled){
+      background:var(--a-dark);border-color:var(--a-dark);
+      box-shadow:0 2px 8px rgba(196,98,45,.35);
+      transform:translateY(-1px);
     }
-
-    /* ── Buttons ── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      border-radius: var(--radius);
-      font-family: var(--font);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      border: 1px solid transparent;
-      transition: all 0.12s ease;
-      white-space: nowrap;
-      line-height: 1;
-    }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-      padding: 6px 13px;
-      box-shadow: var(--shadow);
-    }
-    .btn-primary:hover:not(:disabled) { background: #1660c7; }
-    .btn-primary.loading { color: transparent; position: relative; pointer-events: none; }
-    .btn-primary.loading::after {
-      content: '';
-      position: absolute; inset: 0; margin: auto;
-      width: 13px; height: 13px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.65s linear infinite;
+    .btn-primary:active:not(:disabled){transform:none}
+    .btn-primary.loading{color:transparent;pointer-events:none}
+    .btn-primary.loading::after{
+      content:'';position:absolute;inset:0;margin:auto;
+      width:13px;height:13px;
+      border:1.5px solid rgba(255,255,255,.3);
+      border-top-color:#fff;border-radius:50%;
+      animation:spin .65s linear infinite;
     }
 
-    .btn-secondary {
-      background: var(--surface);
-      color: var(--text-2);
-      padding: 6px 11px;
-      border-color: var(--border);
+    .btn-subtle{
+      background:var(--white);color:var(--ink-2);
+      border-color:var(--border);box-shadow:var(--sh-card);
     }
-    .btn-secondary:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
+    .btn-subtle:hover:not(:disabled){background:var(--sand);color:var(--ink)}
 
-    .btn-ghost {
-      background: transparent;
-      color: var(--text-2);
-      padding: 3px 7px;
-      font-size: 12px;
-      font-weight: 400;
+    .btn-ghost{
+      background:transparent;color:var(--ink-3);
+      border-color:transparent;
+      padding:0 7px;font-size:12px;font-weight:400;
+      height:26px;border-radius:var(--r);
     }
-    .btn-ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
-    .btn-ghost.copied { color: var(--green); }
+    .btn-ghost:hover:not(:disabled){background:var(--sand);color:var(--ink-2)}
+    .btn-ghost.copied{color:var(--green)}
 
-    .btn-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: transparent;
-      color: var(--text-2);
-      padding: 4px;
-      border-radius: 5px;
-      border: 1px solid transparent;
-      cursor: pointer;
-      transition: all 0.12s;
+    .btn-icon{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:26px;height:26px;padding:0;
+      border-radius:var(--r);border:1px solid transparent;
+      background:transparent;color:var(--ink-3);
+      cursor:pointer;transition:all .12s;flex-shrink:0;
     }
-    .btn-icon:hover { background: var(--surface-2); color: var(--text); border-color: var(--border); }
-    .btn-icon.speaking {
-      color: var(--accent);
-      background: var(--accent-bg);
-      border-color: var(--accent-border);
-      animation: speakPulse 1.2s ease-in-out infinite;
+    .btn-icon:hover{background:var(--sand);color:var(--ink-2);border-color:var(--border)}
+    .btn-icon.speaking{
+      color:var(--a);background:var(--a-light);border-color:var(--a-border);
+      animation:speakPulse 1.2s ease-in-out infinite;
     }
 
-    /* ── Error ── */
-    .error-bar {
-      display: none;
-      align-items: center;
-      gap: 7px;
-      padding: 7px 18px;
-      background: var(--red-bg);
-      border-bottom: 1px solid var(--red-border);
-      color: var(--red);
-      font-size: 13px;
-      flex-shrink: 0;
+    /* Diff segmented */
+    .diff-toggle{
+      display:flex;height:24px;
+      border:1px solid var(--border);border-radius:var(--r);
+      overflow:hidden;background:var(--sand);
     }
-    .error-bar.on { display: flex; }
-
-    /* ── Workspace ── */
-    .workspace {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      flex: 1;
-      min-height: 0;
-      overflow: hidden;
+    .diff-toggle__btn{
+      display:flex;align-items:center;padding:0 8px;
+      font-size:11px;font-family:var(--mono);
+      cursor:pointer;border:none;background:transparent;
+      color:var(--ink-3);transition:all .1s;
     }
+    .diff-toggle__btn+.diff-toggle__btn{border-left:1px solid var(--border)}
+    .diff-toggle__btn.active{background:var(--white);color:var(--ink);box-shadow:var(--sh-card)}
+    .diff-toggle__btn:hover:not(.active){color:var(--ink-2)}
 
-    /* ── Panel ── */
-    .panel {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      border-right: 1px solid var(--border);
-      overflow: hidden;
-      background: var(--surface);
+    /* ────────────────────────────────────────
+       ERROR
+    ──────────────────────────────────────── */
+    .error-bar{
+      display:none;align-items:center;gap:8px;
+      padding:7px 18px;
+      background:var(--red-bg);border-bottom:1px solid var(--red-bd);
+      color:var(--red);font-size:12.5px;flex-shrink:0;
     }
-    .panel:last-child { border-right: none; }
+    .error-bar.on{display:flex}
 
-    .panel__hd {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 12px;
-      height: 34px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface-2);
-      flex-shrink: 0;
-      gap: 8px;
+    /* ────────────────────────────────────────
+       WORKSPACE  — cards on a warm desk
+    ──────────────────────────────────────── */
+    .workspace{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      flex:1;min-height:0;overflow:hidden;
+      padding:16px 18px;gap:12px;
+      background:var(--paper);
     }
 
-    .panel__hd-left { display: flex; align-items: center; gap: 7px; }
-
-    .panel__title { font-size: 11.5px; font-weight: 500; color: var(--text); }
-
-    .lang-pill {
-      font-size: 9.5px;
-      font-weight: 600;
-      letter-spacing: 0.07em;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: var(--accent-bg);
-      color: var(--accent);
-      border: 1px solid var(--accent-border);
-      font-family: var(--mono);
+    /* ────────────────────────────────────────
+       PANEL  — floating card
+    ──────────────────────────────────────── */
+    .panel{
+      display:flex;flex-direction:column;
+      min-width:0;overflow:hidden;
+      background:var(--white);
+      border-radius:var(--r-xl);
+      box-shadow:var(--sh-card);
+      border:1px solid var(--border);
+      transition:box-shadow .18s, border-color .18s;
     }
-    .lang-pill.en { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
-
-    .panel__hd-right { display: flex; align-items: center; gap: 3px; }
-
-    /* diff toggle */
-    .diff-toggle {
-      display: flex;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      overflow: hidden;
-    }
-    .diff-toggle__btn {
-      padding: 3px 8px;
-      font-size: 11px;
-      font-family: var(--font);
-      font-weight: 500;
-      cursor: pointer;
-      border: none;
-      background: transparent;
-      color: var(--text-2);
-      transition: all 0.1s;
-      line-height: 1.4;
-    }
-    .diff-toggle__btn + .diff-toggle__btn { border-left: 1px solid var(--border); }
-    .diff-toggle__btn.active { background: var(--text); color: #fff; }
-    .diff-toggle__btn:hover:not(.active) { background: var(--surface-2); }
-
-    /* diff stats */
-    .diff-stats {
-      display: none;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      font-family: var(--mono);
-    }
-    .diff-stats.on { display: flex; }
-    .diff-stat-add { color: var(--green); }
-    .diff-stat-del { color: var(--red); }
-
-    /* Panel body */
-    .panel__body {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
+    .panel:focus-within{
+      box-shadow:var(--sh-lift);
+      border-color:rgba(196,98,45,.22);
     }
 
-    textarea {
-      flex: 1;
-      width: 100%;
-      border: none;
-      outline: none;
-      background: transparent;
-      color: var(--text);
-      font-family: var(--font);
-      font-size: 13.5px;
-      line-height: 1.7;
-      font-weight: 400;
-      padding: 14px 16px;
-      resize: none;
-      min-height: 0;
+    /* ── Panel header: ultra-thin, blends with card ── */
+    .panel__hd{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 8px 0 14px;
+      height:36px;
+      border-bottom:1px solid var(--border-2);
+      flex-shrink:0;
+      border-radius:var(--r-xl) var(--r-xl) 0 0;
     }
-    textarea::placeholder { color: var(--text-3); font-style: italic; }
-    textarea[readonly] { cursor: default; }
+    .panel__hd-left{display:flex;align-items:center;gap:8px}
+    .panel__hd-right{display:flex;align-items:center;gap:1px}
 
-    /* diff view */
-    .diff-view {
-      display: none;
-      flex: 1;
-      padding: 14px 16px;
-      overflow-y: auto;
-      font-size: 13.5px;
-      line-height: 1.7;
-      color: var(--text);
-      word-break: break-word;
-    }
-    .diff-view.visible { display: block; }
-
-    .diff-ins {
-      background: var(--diff-add);
-      color: var(--diff-add-text);
-      border-radius: 3px;
-      padding: 0 2px;
-    }
-    .diff-del {
-      background: var(--diff-del);
-      color: var(--diff-del-text);
-      border-radius: 3px;
-      padding: 0 2px;
-      text-decoration: line-through;
-      opacity: 0.7;
+    .panel__title{
+      font-size:11.5px;font-weight:500;
+      color:var(--ink-3);letter-spacing:.04em;
+      text-transform:uppercase;font-family:var(--mono);
     }
 
-    /* Panel footer */
-    .panel__ft {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 5px 12px;
-      border-top: 1px solid var(--border);
-      background: var(--surface-2);
-      flex-shrink: 0;
+    .flag-badge{font-size:14px;line-height:1;flex-shrink:0}
+
+    .diff-stats{display:none;align-items:center;gap:4px}
+    .diff-stats.on{display:flex}
+    .diff-stat-add{font-size:11px;color:var(--green);font-family:var(--mono)}
+    .diff-stat-del{font-size:11px;color:var(--red);font-family:var(--mono)}
+
+    /* ── Panel body ── */
+    .panel__body{
+      flex:1;min-height:0;
+      display:flex;flex-direction:column;
+      overflow:hidden;position:relative;
     }
 
-    .char-count { font-size: 11px; color: var(--text-3); font-family: var(--mono); }
-
-    /* Empty hint */
-    .empty-hint {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      color: var(--text-3);
-      font-size: 13px;
-      pointer-events: none;
-      text-align: center;
+    textarea{
+      flex:1;width:100%;
+      border:none;outline:none;background:transparent;
+      color:var(--ink);font-family:var(--font);
+      font-size:13.5px;line-height:1.8;font-weight:300;
+      padding:16px 18px;resize:none;min-height:0;
     }
-    .panel.has-content .empty-hint { display: none; }
+    textarea::placeholder{color:var(--ink-3);font-style:italic;font-weight:300}
+    textarea[readonly]{cursor:default}
 
-    /* Skeleton */
-    .skel { display: none; flex-direction: column; gap: 8px; padding: 14px 16px; }
-    .panel.fetching .skel { display: flex; }
-    .panel.fetching textarea,
-    .panel.fetching .diff-view { display: none !important; }
-    .panel.fetching .empty-hint { display: none; }
-
-    .skel-ln {
-      height: 12px;
-      border-radius: 4px;
-      background: linear-gradient(90deg, #f0f0ee 25%, #e6e6e3 50%, #f0f0ee 75%);
-      background-size: 300%;
-      animation: shimmer 1.3s infinite;
+    .diff-view{
+      display:none;flex:1;
+      padding:16px 18px;overflow-y:auto;
+      font-size:13.5px;line-height:1.8;
+      font-weight:300;color:var(--ink);word-break:break-word;
     }
-    .skel-ln:nth-child(2) { width: 83%; }
-    .skel-ln:nth-child(3) { width: 71%; }
-    .skel-ln:nth-child(4) { width: 90%; }
-    .skel-ln:nth-child(5) { width: 62%; }
+    .diff-view.visible{display:block}
+    .diff-ins{background:var(--diff-a);color:var(--diff-at);border-radius:3px;padding:0 2px}
+    .diff-del{background:var(--diff-d);color:var(--diff-dt);border-radius:3px;padding:0 2px;text-decoration:line-through;opacity:.75}
 
-    /* Animations */
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.25; } }
-    @keyframes shimmer { 0% { background-position:100% 0; } 100% { background-position:-100% 0; } }
-    @keyframes fadeUp { from { opacity:0; transform:translateY(3px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes speakPulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+    /* ── Panel footer ── */
+    .panel__ft{
+      display:flex;align-items:center;
+      padding:0 16px;height:28px;
+      border-top:1px solid var(--border-2);flex-shrink:0;
+      border-radius:0 0 var(--r-xl) var(--r-xl);
+    }
+    .char-count{font-size:10.5px;color:var(--ink-3);font-family:var(--mono)}
 
-    .anim { animation: fadeUp 0.2s ease both; }
+    /* ── Empty state ── */
+    .empty-hint{
+      position:absolute;inset:0;
+      display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      gap:10px;pointer-events:none;text-align:center;padding:32px;
+    }
+    .empty-hint__ring{
+      width:44px;height:44px;border-radius:50%;
+      border:1.5px dashed var(--sand-2);
+      display:flex;align-items:center;justify-content:center;
+      color:var(--ink-3);
+    }
+    .empty-hint__label{
+      font-size:12.5px;color:var(--ink-3);line-height:1.6;font-weight:400;
+    }
+    .panel.has-content .empty-hint{display:none}
 
-    @media (max-width: 860px) {
-      .workspace { grid-template-columns: 1fr; grid-template-rows: repeat(3, 1fr); }
-      .panel { border-right: none; border-bottom: 1px solid var(--border); }
-      .panel:last-child { border-bottom: none; }
-      .header__tagline { display: none; }
+    /* ── Skeleton ── */
+    .skel{display:none;flex-direction:column;gap:12px;padding:18px}
+    .panel.fetching .skel{display:flex}
+    .panel.fetching textarea,.panel.fetching .diff-view{display:none!important}
+    .panel.fetching .empty-hint{display:none}
+
+    .skel-ln{
+      height:11px;border-radius:4px;
+      background:linear-gradient(90deg,var(--sand) 25%,var(--sand-2) 50%,var(--sand) 75%);
+      background-size:300%;animation:shimmer 1.5s infinite;
+    }
+    .skel-ln:nth-child(2){width:78%}
+    .skel-ln:nth-child(3){width:62%}
+    .skel-ln:nth-child(4){width:85%}
+    .skel-ln:nth-child(5){width:50%}
+
+    /* ────────────────────────────────────────
+       ANIMATIONS
+    ──────────────────────────────────────── */
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+    @keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    @keyframes speakPulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+    .anim{animation:fadeUp .2s ease both}
+
+    @media(max-width:860px){
+      .workspace{grid-template-columns:1fr;padding:10px}
+      .vdiv{display:none}
     }
   </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- Header -->
-  <header class="header">
-    <div class="header__brand">
-      <span class="logo">Mejora</span>
-      <div class="sep"></div>
-      <span class="header__tagline">Edición y traducción inteligente</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <div class="dialect-toggle">
-        <button class="dialect-btn active" data-dialect="us" title="American English">🇺🇸 US</button>
-        <button class="dialect-btn" data-dialect="uk" title="British English">🇬🇧 UK</button>
+  <!-- ── Topbar ── -->
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo__gem">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 1.5 9.6 6.2H14.4L10.5 8.9l1.5 4.6L8 11l-4 2.5 1.5-4.6L1.6 6.2h4.8z"/>
+        </svg>
       </div>
-      <div id="autoPill" class="auto-pill">Auto</div>
+      Mejora
     </div>
-  </header>
 
-  <!-- Context chips -->
-  <div class="context-bar">
-    <span class="context-label">Contexto</span>
-    <button class="chip active" data-ctx="general">✦ General</button>
-    <button class="chip" data-ctx="email">✉ Email</button>
-    <button class="chip" data-ctx="slack">⚡ Slack</button>
-    <button class="chip" data-ctx="formal">◈ Formal</button>
-    <button class="chip" data-ctx="report">◻ Reporte</button>
+    <div class="vdiv"></div>
+
+    <div class="chips">
+      <button class="chip active" data-ctx="general">General</button>
+      <button class="chip" data-ctx="email">✉︎ Email</button>
+      <button class="chip" data-ctx="slack">⚡ Slack</button>
+      <button class="chip" data-ctx="formal">Formal</button>
+      <button class="chip" data-ctx="report">Reporte</button>
+    </div>
+
+    <div class="topbar__gap"></div>
+
+    <div class="dialect-toggle">
+      <button class="dialect-btn active" data-dialect="us">🇺🇸 US</button>
+      <button class="dialect-btn" data-dialect="uk">🇬🇧 UK</button>
+    </div>
+
+    <div id="autoPill" class="auto-pill">procesando</div>
   </div>
 
-  <!-- Toolbar -->
-  <div class="toolbar">
+  <!-- ── Action bar ── -->
+  <div class="actionbar">
     <button class="btn btn-primary" id="mejorarBtn">
-      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-        <path d="M8 1.5l1.4 4.1H14l-3.6 2.6 1.4 4.2L8 10 4.2 12.4l1.4-4.2L2 5.6h4.6z" fill="currentColor"/>
+      <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M8 1.5 9.6 6.2H14.4L10.5 8.9l1.5 4.6L8 11l-4 2.5 1.5-4.6L1.6 6.2h4.8z"/>
       </svg>
       Mejorar
     </button>
-    <button class="btn btn-secondary" id="limpiarBtn">Limpiar</button>
-    <div class="toolbar__gap"></div>
+    <button class="btn btn-subtle" id="limpiarBtn">Limpiar</button>
+    <div class="actionbar__gap"></div>
     <div class="status" id="statusEl">
       <span class="status__dot"></span>
-      Procesando...
+      Procesando…
     </div>
   </div>
 
-  <!-- Error -->
-  <div class="error-bar" id="errorBar" role="alert" aria-live="assertive">
+  <!-- ── Error ── -->
+  <div class="error-bar" id="errorBar" role="alert">
     <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M8 5v3.5M8 11h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/>
+      <path d="M8 5v3.5M8 11h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
     </svg>
     <span id="errorText"></span>
   </div>
 
-  <!-- Workspace -->
+  <!-- ── Workspace ── -->
   <div class="workspace">
 
-    <!-- Panel 1: Entrada -->
+    <!-- Panel: Entrada -->
     <div class="panel" id="p-input">
       <div class="panel__hd">
-        <div class="panel__hd-left">
-          <span class="panel__title">Entrada</span>
-          <span class="lang-pill">ES</span>
-        </div>
+        <div class="panel__hd-left"><span class="panel__title">Entrada</span></div>
         <div class="panel__hd-right">
           <button class="btn btn-ghost" data-copy="inputText">Copiar</button>
         </div>
       </div>
       <div class="panel__body">
-        <textarea id="inputText" placeholder="Escribe aquí tu texto en español..." spellcheck="true"></textarea>
+        <textarea id="inputText" placeholder="Escribe aquí en español…" spellcheck="true"></textarea>
       </div>
-      <div class="panel__ft">
-        <span class="char-count" id="cnt-input">0</span>
-      </div>
+      <div class="panel__ft"><span class="char-count" id="cnt-input">0</span></div>
     </div>
 
-    <!-- Panel 2: Mejorado + Diff -->
+    <!-- Panel: Mejorado -->
     <div class="panel" id="p-mejorado">
       <div class="panel__hd">
         <div class="panel__hd-left">
           <span class="panel__title">Mejorado</span>
-          <span class="lang-pill">ES</span>
           <div class="diff-stats" id="diffStats">
             <span class="diff-stat-add" id="statAdd">+0</span>
             <span class="diff-stat-del" id="statDel">−0</span>
@@ -588,386 +486,201 @@
         </div>
         <div class="panel__hd-right">
           <div class="diff-toggle">
-            <button class="diff-toggle__btn active" data-view="text">Texto</button>
-            <button class="diff-toggle__btn" data-view="diff">Diff</button>
+            <button class="diff-toggle__btn active" data-view="text">texto</button>
+            <button class="diff-toggle__btn" data-view="diff">diff</button>
           </div>
-          <button class="btn btn-ghost" data-copy="mejoradoText" style="margin-left:4px">Copiar</button>
+          <button class="btn btn-ghost" data-copy="mejoradoText" style="margin-left:2px">Copiar</button>
         </div>
       </div>
       <div class="panel__body">
-        <div class="skel">
-          <div class="skel-ln"></div><div class="skel-ln"></div>
-          <div class="skel-ln"></div><div class="skel-ln"></div>
-          <div class="skel-ln"></div>
-        </div>
+        <div class="skel"><div class="skel-ln"></div><div class="skel-ln"></div><div class="skel-ln"></div><div class="skel-ln"></div><div class="skel-ln"></div></div>
         <div class="empty-hint">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          <span>Presiona Mejorar</span>
+          <div class="empty-hint__ring">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </div>
+          <span class="empty-hint__label">El texto mejorado<br>aparecerá aquí</span>
         </div>
-        <textarea id="mejoradoText" readonly placeholder=""></textarea>
+        <textarea id="mejoradoText" readonly></textarea>
         <div class="diff-view" id="diffView"></div>
       </div>
-      <div class="panel__ft">
-        <span class="char-count" id="cnt-mejorado">—</span>
-      </div>
+      <div class="panel__ft"><span class="char-count" id="cnt-mejorado">—</span></div>
     </div>
 
-    <!-- Panel 3: Traducción -->
+    <!-- Panel: Traducción -->
     <div class="panel" id="p-english">
       <div class="panel__hd">
         <div class="panel__hd-left">
           <span class="panel__title">Traducción</span>
-          <span class="lang-pill en">EN</span>
+          <span class="flag-badge" id="flagBadge">🇺🇸</span>
         </div>
         <div class="panel__hd-right">
-          <!-- TTS button with Lucide icon -->
           <button class="btn-icon" id="ttsBtn" title="Escuchar en inglés">
-            <i data-lucide="volume-2" style="width:14px;height:14px"></i>
+            <i data-lucide="volume-2" style="width:13px;height:13px"></i>
           </button>
           <button class="btn btn-ghost" data-copy="englishText">Copiar</button>
         </div>
       </div>
       <div class="panel__body">
-        <div class="skel">
-          <div class="skel-ln"></div><div class="skel-ln"></div>
-          <div class="skel-ln"></div><div class="skel-ln"></div>
-          <div class="skel-ln"></div>
-        </div>
+        <div class="skel"><div class="skel-ln"></div><div class="skel-ln"></div><div class="skel-ln"></div><div class="skel-ln"></div><div class="skel-ln"></div></div>
         <div class="empty-hint">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M5 8h14M5 12h10M5 16h6"/></svg>
-          <span>La traducción aparecerá aquí</span>
+          <div class="empty-hint__ring">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M5 8h14M5 12h10M5 16h6"/>
+            </svg>
+          </div>
+          <span class="empty-hint__label">La traducción<br>aparecerá aquí</span>
         </div>
-        <textarea id="englishText" readonly placeholder=""></textarea>
+        <textarea id="englishText" readonly></textarea>
       </div>
-      <div class="panel__ft">
-        <span class="char-count" id="cnt-english">—</span>
-      </div>
+      <div class="panel__ft"><span class="char-count" id="cnt-english">—</span></div>
     </div>
 
   </div>
 </div>
 
 <script>
-// ── Lucide icons ─────────────────────────────────────────────────────────────
 lucide.createIcons();
 
-// ── Diff engine (word-level) ─────────────────────────────────────────────────
-function computeDiff(oldStr, newStr) {
-  const oldTokens = oldStr.split(/(\s+)/);
-  const newTokens = newStr.split(/(\s+)/);
-  const lcs = getLCS(oldTokens, newTokens);
-  return buildHTML(oldTokens, newTokens, lcs);
-}
+/* ── Diff engine ─────────────────────────────────────────────────────────── */
+function computeDiff(o,n){const ot=o.split(/(\s+)/),nt=n.split(/(\s+)/);return buildHTML(ot,nt,getLCS(ot,nt));}
+function getLCS(a,b){const m=a.length,n=b.length,dp=Array.from({length:m+1},()=>new Uint16Array(n+1));for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);const r=[];let i=m,j=n;while(i>0&&j>0){if(a[i-1]===b[j-1]){r.unshift([i-1,j-1]);i--;j--;}else if(dp[i-1][j]>=dp[i][j-1])i--;else j--;}return r;}
+function buildHTML(ot,nt,lcs){const h=[];let oi=0,ni=0,li=0,add=0,del=0;const e=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');while(oi<ot.length||ni<nt.length){const lo=li<lcs.length?lcs[li][0]:-1,ln=li<lcs.length?lcs[li][1]:-1;if(li<lcs.length&&oi===lo&&ni===ln){h.push(e(ot[oi]));oi++;ni++;li++;}else{while(oi<ot.length&&(li>=lcs.length||oi<lo)){const t=ot[oi];if(t.trim()){h.push(`<del class="diff-del">${e(t)}</del>`);del++;}else h.push(e(t));oi++;}while(ni<nt.length&&(li>=lcs.length||ni<ln)){const t=nt[ni];if(t.trim()){h.push(`<ins class="diff-ins">${e(t)}</ins>`);add++;}else h.push(e(t));ni++;}}}return{html:h.join(''),add,del};}
 
-function getLCS(a, b) {
-  const m = a.length, n = b.length;
-  const dp = Array.from({ length: m + 1 }, () => new Uint16Array(n + 1));
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
-      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] + 1 : Math.max(dp[i-1][j], dp[i][j-1]);
-  const res = []; let i = m, j = n;
-  while (i > 0 && j > 0) {
-    if (a[i-1] === b[j-1]) { res.unshift([i-1, j-1]); i--; j--; }
-    else if (dp[i-1][j] >= dp[i][j-1]) i--; else j--;
-  }
-  return res;
-}
+/* ── Init ────────────────────────────────────────────────────────────────── */
+const $=id=>document.getElementById(id);
+const inputText=$('inputText'),mejoradoText=$('mejoradoText'),englishText=$('englishText');
+const mejorarBtn=$('mejorarBtn'),limpiarBtn=$('limpiarBtn');
+const statusEl=$('statusEl'),errorBar=$('errorBar'),errorText=$('errorText');
+const autoPill=$('autoPill'),diffView=$('diffView');
+const diffStats=$('diffStats'),statAdd=$('statAdd'),statDel=$('statDel');
+const ttsBtn=$('ttsBtn'),flagBadge=$('flagBadge');
+const SK='mejora:last-input';
+inputText.value=localStorage.getItem(SK)||'';
+syncCount(inputText,'cnt-input');
+if(inputText.value.trim())$('p-input').classList.add('has-content');
 
-function buildHTML(ot, nt, lcs) {
-  const html = []; let oi = 0, ni = 0, li = 0, add = 0, del = 0;
-  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  while (oi < ot.length || ni < nt.length) {
-    const lo = li < lcs.length ? lcs[li][0] : -1, ln = li < lcs.length ? lcs[li][1] : -1;
-    if (li < lcs.length && oi === lo && ni === ln) { html.push(esc(ot[oi])); oi++; ni++; li++; }
-    else {
-      while (oi < ot.length && (li >= lcs.length || oi < lo)) {
-        const t = ot[oi]; if (t.trim()) { html.push(`<del class="diff-del">${esc(t)}</del>`); del++; } else html.push(esc(t)); oi++;
-      }
-      while (ni < nt.length && (li >= lcs.length || ni < ln)) {
-        const t = nt[ni]; if (t.trim()) { html.push(`<ins class="diff-ins">${esc(t)}</ins>`); add++; } else html.push(esc(t)); ni++;
-      }
-    }
-  }
-  return { html: html.join(''), add, del };
-}
-
-// ── App ──────────────────────────────────────────────────────────────────────
-const $ = id => document.getElementById(id);
-
-const inputText    = $('inputText');
-const mejoradoText = $('mejoradoText');
-const englishText  = $('englishText');
-const mejorarBtn   = $('mejorarBtn');
-const limpiarBtn   = $('limpiarBtn');
-const statusEl     = $('statusEl');
-const errorBar     = $('errorBar');
-const errorText    = $('errorText');
-const autoPill     = $('autoPill');
-const diffView     = $('diffView');
-const diffStats    = $('diffStats');
-const statAdd      = $('statAdd');
-const statDel      = $('statDel');
-const ttsBtn       = $('ttsBtn');
-
-// Restore
-const STORAGE_KEY = 'mejora:last-input';
-inputText.value = localStorage.getItem(STORAGE_KEY) || '';
-syncCount(inputText, 'cnt-input');
-
-// ── Dialect toggle ───────────────────────────────────────────────────────────
-let activeDialect = 'us';
-
-document.querySelectorAll('.dialect-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    if (btn.dataset.dialect === activeDialect) return;
-    document.querySelectorAll('.dialect-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    activeDialect = btn.dataset.dialect;
-    // Re-translate if there's already content
-    const val = inputText.value.trim();
-    if (val) { clearTimeout(timer); runMejorar(val); }
+/* ── Dialect ─────────────────────────────────────────────────────────────── */
+let activeDialect='us';
+const FLAGS={us:'🇺🇸',uk:'🇬🇧'};
+document.querySelectorAll('.dialect-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    if(b.dataset.dialect===activeDialect)return;
+    document.querySelectorAll('.dialect-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');activeDialect=b.dataset.dialect;
+    flagBadge.textContent=FLAGS[activeDialect];
+    const v=inputText.value.trim();if(v){clearTimeout(timer);runMejorar(v);}
   });
 });
 
-// ── Context chips ────────────────────────────────────────────────────────────
-let activeCtx = 'general';
-
-document.querySelectorAll('.chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    if (chip.dataset.ctx === activeCtx) return; // no change
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-    chip.classList.add('active');
-    activeCtx = chip.dataset.ctx;
-
-    // Auto-retranslate if there's text already processed
-    const val = inputText.value.trim();
-    if (val) {
-      clearTimeout(timer);
-      runMejorar(val);
-    }
+/* ── Context ─────────────────────────────────────────────────────────────── */
+let activeCtx='general';
+document.querySelectorAll('.chip').forEach(c=>{
+  c.addEventListener('click',()=>{
+    if(c.dataset.ctx===activeCtx)return;
+    document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');activeCtx=c.dataset.ctx;
+    const v=inputText.value.trim();if(v){clearTimeout(timer);runMejorar(v);}
   });
 });
 
-// ── Diff toggle ──────────────────────────────────────────────────────────────
-let diffMode = 'text';
-
-document.querySelectorAll('.diff-toggle__btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    diffMode = btn.dataset.view;
-    document.querySelectorAll('.diff-toggle__btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    applyDiffView();
+/* ── Diff toggle ─────────────────────────────────────────────────────────── */
+let diffMode='text';
+document.querySelectorAll('.diff-toggle__btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    diffMode=b.dataset.view;
+    document.querySelectorAll('.diff-toggle__btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');applyDiffView();
   });
 });
+function applyDiffView(){const has=!!mejoradoText.value;mejoradoText.style.display=(diffMode==='diff'&&has)?'none':'';diffView.classList.toggle('visible',diffMode==='diff'&&has);}
 
-function applyDiffView() {
-  const hasMejorado = !!mejoradoText.value;
-  if (diffMode === 'diff' && hasMejorado) {
-    mejoradoText.style.display = 'none';
-    diffView.classList.add('visible');
-  } else {
-    mejoradoText.style.display = '';
-    diffView.classList.remove('visible');
-  }
-}
-
-// ── Auto-translate (1.5s debounce) ───────────────────────────────────────────
-let timer = null;
-let lastText = '';
-let lastCtx  = '';
-
-inputText.addEventListener('input', () => {
-  localStorage.setItem(STORAGE_KEY, inputText.value);
-  syncCount(inputText, 'cnt-input');
-  clearTimeout(timer);
-  const val = inputText.value.trim();
-  if (!val) { autoPill.classList.remove('on'); return; }
+/* ── Auto debounce ───────────────────────────────────────────────────────── */
+let timer=null,lastText='',lastCtx='';
+inputText.addEventListener('input',()=>{
+  localStorage.setItem(SK,inputText.value);syncCount(inputText,'cnt-input');
+  $('p-input').classList.toggle('has-content',!!inputText.value.trim());
+  clearTimeout(timer);const v=inputText.value.trim();
+  if(!v){autoPill.classList.remove('on');return;}
   autoPill.classList.add('on');
-  timer = setTimeout(() => {
-    autoPill.classList.remove('on');
-    if (val !== lastText || activeCtx !== lastCtx) runMejorar(val);
-  }, 1500);
+  timer=setTimeout(()=>{autoPill.classList.remove('on');if(v!==lastText||activeCtx!==lastCtx)runMejorar(v);},1500);
 });
 
-// ── Copy ─────────────────────────────────────────────────────────────────────
-document.querySelectorAll('[data-copy]').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    const el = $(btn.dataset.copy);
-    if (!el?.value.trim()) return;
-    try {
-      await navigator.clipboard.writeText(el.value);
-      btn.textContent = '✓ Copiado';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 1400);
-    } catch { showErr('No se pudo copiar.'); }
+/* ── Copy ────────────────────────────────────────────────────────────────── */
+document.querySelectorAll('[data-copy]').forEach(b=>{
+  b.addEventListener('click',async()=>{
+    const el=$(b.dataset.copy);if(!el?.value.trim())return;
+    try{await navigator.clipboard.writeText(el.value);b.textContent='✓ Copiado';b.classList.add('copied');setTimeout(()=>{b.textContent='Copiar';b.classList.remove('copied');},1400);}
+    catch{showErr('No se pudo copiar.');}
   });
 });
 
-// ── TTS ──────────────────────────────────────────────────────────────────────
-let currentUtterance = null;
-
-ttsBtn.addEventListener('click', () => {
-  const text = englishText.value.trim();
-  if (!text) return;
-
-  // If speaking, stop
-  if (window.speechSynthesis.speaking) {
-    window.speechSynthesis.cancel();
-    ttsBtn.classList.remove('speaking');
-    // Update icon back to volume-2
-    ttsBtn.innerHTML = '<i data-lucide="volume-2" style="width:14px;height:14px"></i>';
-    lucide.createIcons();
-    currentUtterance = null;
-    return;
-  }
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'en-US';
-  utterance.rate = 0.95;
-  utterance.pitch = 1;
-
-  // Try to pick a good English voice
-  const voices = window.speechSynthesis.getVoices();
-  const enVoice = voices.find(v => v.lang.startsWith('en') && v.localService) ||
-                  voices.find(v => v.lang.startsWith('en'));
-  if (enVoice) utterance.voice = enVoice;
-
-  utterance.onstart = () => {
-    ttsBtn.classList.add('speaking');
-    ttsBtn.innerHTML = '<i data-lucide="volume-x" style="width:14px;height:14px"></i>';
-    lucide.createIcons();
-  };
-
-  utterance.onend = utterance.onerror = () => {
-    ttsBtn.classList.remove('speaking');
-    ttsBtn.innerHTML = '<i data-lucide="volume-2" style="width:14px;height:14px"></i>';
-    lucide.createIcons();
-    currentUtterance = null;
-  };
-
-  currentUtterance = utterance;
-  window.speechSynthesis.speak(utterance);
+/* ── TTS ─────────────────────────────────────────────────────────────────── */
+let currentUtterance=null;
+ttsBtn.addEventListener('click',()=>{
+  const text=englishText.value.trim();if(!text)return;
+  if(window.speechSynthesis.speaking){window.speechSynthesis.cancel();ttsBtn.classList.remove('speaking');ttsBtn.innerHTML='<i data-lucide="volume-2" style="width:13px;height:13px"></i>';lucide.createIcons();currentUtterance=null;return;}
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=activeDialect==='uk'?'en-GB':'en-US';u.rate=0.95;
+  const vs=window.speechSynthesis.getVoices(),lc=u.lang;
+  const v=vs.find(x=>x.lang===lc&&x.localService)||vs.find(x=>x.lang===lc)||vs.find(x=>x.lang.startsWith('en'));
+  if(v)u.voice=v;
+  u.onstart=()=>{ttsBtn.classList.add('speaking');ttsBtn.innerHTML='<i data-lucide="volume-x" style="width:13px;height:13px"></i>';lucide.createIcons();};
+  u.onend=u.onerror=()=>{ttsBtn.classList.remove('speaking');ttsBtn.innerHTML='<i data-lucide="volume-2" style="width:13px;height:13px"></i>';lucide.createIcons();currentUtterance=null;};
+  currentUtterance=u;window.speechSynthesis.speak(u);
 });
+window.speechSynthesis.onvoiceschanged=()=>{};
 
-// Voices may load async
-window.speechSynthesis.onvoiceschanged = () => {};
-
-// ── Limpiar ──────────────────────────────────────────────────────────────────
-limpiarBtn.addEventListener('click', () => {
-  clearTimeout(timer);
-  window.speechSynthesis.cancel();
-  ttsBtn.classList.remove('speaking');
-  ttsBtn.innerHTML = '<i data-lucide="volume-2" style="width:14px;height:14px"></i>';
-  lucide.createIcons();
-
-  inputText.value = mejoradoText.value = englishText.value = '';
-  diffView.innerHTML = '';
-  diffView.classList.remove('visible');
-  mejoradoText.style.display = '';
-  diffMode = 'text';
-  document.querySelectorAll('.diff-toggle__btn').forEach((b,i) => b.classList.toggle('active', i===0));
-  localStorage.removeItem(STORAGE_KEY);
-  lastText = ''; lastCtx = '';
-  clearErr(); hideStatus(); autoPill.classList.remove('on');
-  $('cnt-input').textContent = '0';
-  $('cnt-mejorado').textContent = $('cnt-english').textContent = '—';
-  $('p-mejorado').classList.remove('has-content');
-  $('p-english').classList.remove('has-content');
+/* ── Limpiar ─────────────────────────────────────────────────────────────── */
+limpiarBtn.addEventListener('click',()=>{
+  clearTimeout(timer);window.speechSynthesis.cancel();
+  ttsBtn.classList.remove('speaking');ttsBtn.innerHTML='<i data-lucide="volume-2" style="width:13px;height:13px"></i>';lucide.createIcons();
+  inputText.value=mejoradoText.value=englishText.value='';
+  diffView.innerHTML='';diffView.classList.remove('visible');
+  mejoradoText.style.display='';diffMode='text';
+  document.querySelectorAll('.diff-toggle__btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+  localStorage.removeItem(SK);lastText='';lastCtx='';
+  clearErr();statusEl.classList.remove('on');autoPill.classList.remove('on');
+  $('cnt-input').textContent='0';$('cnt-mejorado').textContent=$('cnt-english').textContent='—';
+  ['p-input','p-mejorado','p-english'].forEach(id=>$(id).classList.remove('has-content'));
   diffStats.classList.remove('on');
 });
 
-// ── Mejorar button ───────────────────────────────────────────────────────────
-mejorarBtn.addEventListener('click', () => {
-  clearTimeout(timer);
-  autoPill.classList.remove('on');
-  runMejorar(inputText.value.trim());
-});
+/* ── Mejorar ─────────────────────────────────────────────────────────────── */
+mejorarBtn.addEventListener('click',()=>{clearTimeout(timer);autoPill.classList.remove('on');runMejorar(inputText.value.trim());});
 
-// ── Core ─────────────────────────────────────────────────────────────────────
-async function runMejorar(text) {
-  if (!text) { showErr('Escribe un texto para continuar.'); return; }
-  clearErr();
-  setLoading(true);
-  lastText = text;
-  lastCtx  = activeCtx;
-
-  // Stop any ongoing TTS
-  window.speechSynthesis.cancel();
-  ttsBtn.classList.remove('speaking');
-  ttsBtn.innerHTML = '<i data-lucide="volume-2" style="width:14px;height:14px"></i>';
-  lucide.createIcons();
-
-  try {
-    const res = await fetch('/api/mejorar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, context: activeCtx, dialect: activeDialect }),
-    });
-
-    let data = null;
-    try { data = await res.json(); } catch {}
-    if (!res.ok) { showErr(data?.error || 'No se pudo procesar.'); return; }
-    if (!data)   { showErr('Respuesta inválida.'); return; }
-
-    const mejorado = data.mejorado || '';
-    const english  = data.english  || '';
-
-    mejoradoText.value = mejorado;
-    englishText.value  = english;
-
-    // Compute diff
-    if (mejorado && text) {
-      const { html, add, del } = computeDiff(text, mejorado);
-      diffView.innerHTML = html;
-      statAdd.textContent = `+${add}`;
-      statDel.textContent = `−${del}`;
-      diffStats.classList.toggle('on', add > 0 || del > 0);
-    }
-
+async function runMejorar(text){
+  if(!text){showErr('Escribe un texto para continuar.');return;}
+  clearErr();setLoading(true);lastText=text;lastCtx=activeCtx;
+  window.speechSynthesis.cancel();ttsBtn.classList.remove('speaking');
+  ttsBtn.innerHTML='<i data-lucide="volume-2" style="width:13px;height:13px"></i>';lucide.createIcons();
+  try{
+    const res=await fetch('/api/mejorar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,context:activeCtx,dialect:activeDialect})});
+    let data=null;try{data=await res.json();}catch{}
+    if(!res.ok){showErr(data?.error||'No se pudo procesar.');return;}
+    if(!data){showErr('Respuesta inválida.');return;}
+    const mejorado=data.mejorado||'',english=data.english||'';
+    mejoradoText.value=mejorado;englishText.value=english;
+    if(mejorado&&text){const{html,add,del}=computeDiff(text,mejorado);diffView.innerHTML=html;statAdd.textContent=`+${add}`;statDel.textContent=`−${del}`;diffStats.classList.toggle('on',add>0||del>0);}
     applyDiffView();
-    $('p-mejorado').classList.add('has-content');
-    $('p-english').classList.add('has-content');
-    syncCount(mejoradoText, 'cnt-mejorado');
-    syncCount(englishText,  'cnt-english');
-
-    [mejoradoText, englishText, diffView].forEach(el => {
-      el.classList.remove('anim'); void el.offsetWidth; el.classList.add('anim');
-    });
-
-  } catch (e) {
-    showErr(e.message || 'Error de red.');
-  } finally {
-    setLoading(false);
-  }
+    $('p-mejorado').classList.add('has-content');$('p-english').classList.add('has-content');
+    syncCount(mejoradoText,'cnt-mejorado');syncCount(englishText,'cnt-english');
+    [mejoradoText,englishText,diffView].forEach(el=>{el.classList.remove('anim');void el.offsetWidth;el.classList.add('anim');});
+  }catch(e){showErr(e.message||'Error de red.');}
+  finally{setLoading(false);}
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-function setLoading(on) {
-  mejorarBtn.disabled = on;
-  mejorarBtn.classList.toggle('loading', on);
-  statusEl.classList.toggle('on', on);
-  ['p-mejorado', 'p-english'].forEach(id => $(id).classList.toggle('fetching', on));
-  if (on) {
-    mejoradoText.value = englishText.value = '';
-    diffView.innerHTML = '';
-    diffStats.classList.remove('on');
-    $('cnt-mejorado').textContent = $('cnt-english').textContent = '—';
-  }
+function setLoading(on){
+  mejorarBtn.disabled=on;mejorarBtn.classList.toggle('loading',on);
+  statusEl.classList.toggle('on',on);
+  ['p-mejorado','p-english'].forEach(id=>$(id).classList.toggle('fetching',on));
+  if(on){mejoradoText.value=englishText.value='';diffView.innerHTML='';diffStats.classList.remove('on');$('cnt-mejorado').textContent=$('cnt-english').textContent='—';}
 }
-
-function hideStatus() { statusEl.classList.remove('on'); }
-
-function showErr(msg) {
-  errorText.textContent = msg;
-  errorBar.classList.add('on');
-  setTimeout(() => errorBar.classList.remove('on'), 5000);
-}
-function clearErr() { errorBar.classList.remove('on'); }
-
-function syncCount(ta, id) {
-  const n = ta.value.length;
-  $(id).textContent = n === 0 ? '0' : n.toLocaleString();
-}
+function showErr(msg){errorText.textContent=msg;errorBar.classList.add('on');setTimeout(()=>errorBar.classList.remove('on'),5000);}
+function clearErr(){errorBar.classList.remove('on');}
+function syncCount(ta,id){$(id).textContent=ta.value.length===0?'0':ta.value.length.toLocaleString();}
 </script>
 </body>
 </html>
