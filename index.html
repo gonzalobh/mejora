@@ -919,14 +919,8 @@ async function runMejorar(text) {
     if (e.name === 'AbortError') return; // user triggered new request — silent
     showErr(e.message || 'Error de red.');
   } finally {
-    // Cleanup streaming state
-    statusEl.classList.remove('on');
-    setCursor('p-mejorado', false);
-    setCursor('p-english', false);
-    $('p-mejorado').classList.remove('streaming');
-    $('p-english').classList.remove('streaming');
-    $('mejorarBtn').classList.remove('working');
-
+    // Cleanup streaming state — has-content ANTES de quitar streaming
+    // para evitar el flash del empty-hint entre los dos estados
     if (mejoradoAccum) {
       $('p-mejorado').classList.add('has-content');
       syncCount(mejoradoText, 'cnt-mejorado');
@@ -935,6 +929,13 @@ async function runMejorar(text) {
       $('p-english').classList.add('has-content');
       syncCount(englishText, 'cnt-english');
     }
+
+    statusEl.classList.remove('on');
+    setCursor('p-mejorado', false);
+    setCursor('p-english', false);
+    $('p-mejorado').classList.remove('streaming');
+    $('p-english').classList.remove('streaming');
+    $('mejorarBtn').classList.remove('working');
 
     abortCtrl = null;
   }
