@@ -1,617 +1,871 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mejora</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-    <style>
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mejora</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/diff_match_patch/20121119/diff_match_patch.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-      :root {
-        --bg: #ffffff;
-        --surface: #ffffff;
-        --surface-hover: #f9f9f8;
-        --border: #e8e8e6;
-        --text: #1a1a18;
-        --text-secondary: #6b6b67;
-        --text-placeholder: #c0c0bb;
-        --accent: #2383e2;
-        --accent-bg: #eef5fd;
-        --accent-border: #c3daf9;
-        --success: #4caf6e;
-        --error: #d94f3d;
-        --error-bg: #fef2f1;
-        --radius: 8px;
-        --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-      }
+    :root {
+      --bg:           #fafaf9;
+      --surface:      #ffffff;
+      --surface-2:    #f5f5f3;
+      --border:       #e8e7e3;
+      --border-soft:  #f0efe9;
+      --text:         #181816;
+      --text-2:       #6b6a65;
+      --text-3:       #b8b7b0;
+      --accent:       #1a6ef0;
+      --accent-bg:    #eff5ff;
+      --accent-bd:    #c5d9fc;
+      --ins-bg:       #d4f0df;
+      --ins-text:     #1a6335;
+      --del-bg:       #fde0dc;
+      --del-text:     #8b2017;
+      --success:      #2e9e55;
+      --error:        #cc3b2b;
+      --error-bg:     #fff2f0;
+      --radius:       7px;
+      --font:         'Geist', -apple-system, sans-serif;
+      --mono:         'Geist Mono', monospace;
+    }
 
-      html, body { height: 100%; }
+    html, body { height: 100%; }
 
-      body {
-        background: var(--bg);
-        color: var(--text);
-        font-family: var(--font);
-        font-size: 14px;
-        line-height: 1.5;
-        -webkit-font-smoothing: antialiased;
-      }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
 
-      .app {
-        display: flex;
-        flex-direction: column;
-        height: 100dvh;
-        overflow: hidden;
-      }
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      overflow: hidden;
+    }
 
-      /* ── Header ── */
-      .header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 20px;
-        height: 48px;
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-        gap: 12px;
-      }
+    /* ── Header ── */
+    .hdr {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 18px;
+      height: 46px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
 
-      .header__left { display: flex; align-items: center; gap: 10px; }
+    .logo {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
 
-      .logo { font-size: 14px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; }
+    .hdr-sep { width: 1px; height: 15px; background: var(--border); }
 
-      .sep { width: 1px; height: 16px; background: var(--border); flex-shrink: 0; }
+    .hdr-sub {
+      font-size: 12.5px;
+      color: var(--text-2);
+      font-weight: 400;
+    }
 
-      .header__sub { font-size: 13px; color: var(--text-secondary); }
+    .hdr-gap { flex: 1; }
 
-      .auto-badge {
-        display: none;
-        align-items: center;
-        gap: 5px;
-        font-size: 11px;
-        font-weight: 500;
-        color: var(--accent);
-        background: var(--accent-bg);
-        border: 1px solid var(--accent-border);
-        border-radius: 100px;
-        padding: 3px 9px;
-      }
-      .auto-badge.on { display: flex; }
-      .auto-badge::before {
-        content: '';
-        width: 5px; height: 5px;
-        border-radius: 50%;
-        background: var(--accent);
-        animation: pulse 1s ease-in-out infinite;
-      }
+    .auto-pill {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent);
+      background: var(--accent-bg);
+      border: 1px solid var(--accent-bd);
+      border-radius: 100px;
+      padding: 3px 9px;
+      font-family: var(--mono);
+      letter-spacing: 0.02em;
+    }
+    .auto-pill.on { display: flex; }
+    .auto-pill::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1s ease-in-out infinite;
+    }
 
-      /* ── Toolbar ── */
-      .toolbar {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 20px;
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-      }
+    /* ── Context chips ── */
+    .ctx-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
 
-      .toolbar__gap { flex: 1; }
+    .ctx-label {
+      font-size: 11.5px;
+      color: var(--text-3);
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      margin-right: 2px;
+      white-space: nowrap;
+    }
 
-      .status {
-        display: none;
-        align-items: center;
-        gap: 6px;
-        font-size: 12px;
-        color: var(--text-secondary);
-      }
-      .status.on { display: flex; }
-      .status__dot {
-        width: 6px; height: 6px;
-        border-radius: 50%;
-        background: var(--accent);
-        animation: pulse 1.1s ease-in-out infinite;
-        flex-shrink: 0;
-      }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-2);
+      font-family: var(--font);
+      font-size: 12.5px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all 0.12s ease;
+      white-space: nowrap;
+    }
+    .chip:hover { background: var(--surface-2); color: var(--text); border-color: #d0cfc9; }
+    .chip.active {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
+    }
 
-      /* ── Buttons ── */
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        border-radius: var(--radius);
-        font-family: var(--font);
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background 0.12s, border-color 0.12s, color 0.12s, opacity 0.12s;
-        border: 1px solid transparent;
-        white-space: nowrap;
-        line-height: 1;
-      }
-      .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .chip-icon { font-size: 13px; line-height: 1; }
 
-      .btn-primary {
-        background: var(--accent);
-        color: #fff;
-        padding: 7px 13px;
-        box-shadow: var(--shadow-sm);
-      }
-      .btn-primary:hover:not(:disabled) { background: #1a72d1; }
-      .btn-primary.loading { color: transparent; position: relative; pointer-events: none; }
-      .btn-primary.loading::after {
-        content: '';
-        position: absolute;
-        inset: 0; margin: auto;
-        width: 13px; height: 13px;
-        border: 2px solid rgba(255,255,255,0.3);
-        border-top-color: #fff;
-        border-radius: 50%;
-        animation: spin 0.65s linear infinite;
-      }
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
 
-      .btn-secondary {
-        background: var(--surface);
-        color: var(--text-secondary);
-        padding: 7px 11px;
-        border-color: var(--border);
-      }
-      .btn-secondary:hover:not(:disabled) { background: var(--surface-hover); color: var(--text); }
+    .toolbar-gap { flex: 1; }
 
-      .btn-ghost {
-        background: transparent;
-        color: var(--text-secondary);
-        padding: 4px 8px;
-        font-size: 12px;
-        font-weight: 400;
-      }
-      .btn-ghost:hover:not(:disabled) { background: var(--surface-hover); color: var(--text); }
-      .btn-ghost.copied { color: var(--success); }
+    .status {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-2);
+      font-family: var(--mono);
+    }
+    .status.on { display: flex; }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1.1s ease-in-out infinite;
+    }
 
-      .btn-icon {
-        background: transparent;
-        color: var(--text-secondary);
-        padding: 5px;
-        border-radius: 6px;
-      }
-      .btn-icon:hover:not(:disabled) { background: var(--surface-hover); color: var(--text); }
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      line-height: 1;
+      transition: background 0.12s, border-color 0.12s, color 0.12s, opacity 0.12s;
+    }
+    .btn:disabled { opacity: 0.38; cursor: not-allowed; }
 
-      /* ── Error ── */
-      .error-bar {
-        display: none;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 20px;
-        background: var(--error-bg);
-        border-bottom: 1px solid #fad4d0;
-        color: var(--error);
-        font-size: 13px;
-        flex-shrink: 0;
-      }
-      .error-bar.on { display: flex; }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      padding: 7px 13px;
+      box-shadow: 0 1px 3px rgba(26,110,240,0.25);
+    }
+    .btn-primary:hover:not(:disabled) { background: #1560d8; }
+    .btn-primary.loading { color: transparent; position: relative; pointer-events: none; }
+    .btn-primary.loading::after {
+      content: '';
+      position: absolute;
+      inset: 0; margin: auto;
+      width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
 
-      /* ── Workspace ── */
-      .workspace {
-        display: flex;
-        flex: 1;
-        min-height: 0;
-        overflow: hidden;
-      }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text-2);
+      padding: 7px 11px;
+      border-color: var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
 
-      /* ── Panel ── */
-      .panel {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        min-width: 0;
-        border-right: 1px solid var(--border);
-        overflow: hidden;
-        transition: flex 0.2s ease, max-width 0.2s ease;
-      }
-      .panel:last-child { border-right: none; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-2);
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 400;
+    }
+    .btn-ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
+    .btn-ghost.copied { color: var(--success); }
 
-      .panel.collapsed {
-        flex: 0 0 40px;
-        min-width: 40px;
-        max-width: 40px;
-      }
+    /* ── Error ── */
+    .error-bar {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 18px;
+      background: var(--error-bg);
+      border-bottom: 1px solid #fcc;
+      color: var(--error);
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .error-bar.on { display: flex; }
 
-      /* Panel header */
-      .panel__hd {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 12px;
-        height: 36px;
-        border-bottom: 1px solid var(--border);
-        background: var(--surface-hover);
-        gap: 6px;
-        flex-shrink: 0;
-      }
+    /* ── Workspace ── */
+    .workspace {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      background: var(--bg);
+    }
 
-      .panel.collapsed .panel__hd {
-        flex-direction: column;
-        height: 100%;
-        padding: 10px 0;
-        justify-content: flex-start;
-        border-bottom: none;
-        cursor: pointer;
-      }
+    /* ── Panel ── */
+    .panel {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+    }
+    .panel:last-child { border-right: none; }
 
-      .panel__hd-left { display: flex; align-items: center; gap: 7px; flex: 1; min-width: 0; }
-      .panel.collapsed .panel__hd-left { flex-direction: column; flex: 0; gap: 8px; }
+    .panel-hd {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      height: 34px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      gap: 6px;
+    }
 
-      .panel__title {
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--text);
-        white-space: nowrap;
-      }
-      .panel.collapsed .panel__title {
-        writing-mode: vertical-rl;
-        transform: rotate(180deg);
-        font-size: 11px;
-        color: var(--text-secondary);
-        letter-spacing: 0.02em;
-      }
+    .panel-hd-left { display: flex; align-items: center; gap: 7px; }
 
-      .lang-pill {
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.06em;
-        padding: 2px 6px;
-        border-radius: 4px;
-        background: var(--accent-bg);
-        color: var(--accent);
-        border: 1px solid var(--accent-border);
-        flex-shrink: 0;
-      }
-      .lang-pill.en { background: #f0faf4; color: #2d7a4f; border-color: #b8e5cb; }
-      .panel.collapsed .lang-pill { display: none; }
+    .panel-title {
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }
 
-      .panel__hd-right { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
-      .panel.collapsed .panel__hd-right { display: none; }
+    .lang-pill {
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      padding: 2px 5px;
+      border-radius: 3px;
+      background: var(--accent-bg);
+      color: var(--accent);
+      border: 1px solid var(--accent-bd);
+      font-family: var(--mono);
+    }
+    .lang-pill.en { background: #edfaf3; color: #217a45; border-color: #a8e4c0; }
 
-      /* Panel body */
-      .panel__body {
-        flex: 1;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        position: relative;
-      }
-      .panel.collapsed .panel__body { display: none; }
+    .panel-hd-right { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
 
-      textarea {
-        flex: 1;
-        width: 100%;
-        border: none;
-        outline: none;
-        background: transparent;
-        color: var(--text);
-        font-family: var(--font);
-        font-size: 14px;
-        line-height: 1.65;
-        font-weight: 400;
-        padding: 12px 16px;
-        resize: none;
-        min-height: 0;
-      }
-      textarea::placeholder { color: var(--text-placeholder); }
-      textarea[readonly] { cursor: default; }
+    /* Diff toggle */
+    .diff-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: transparent;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all 0.12s;
+      letter-spacing: 0.02em;
+    }
+    .diff-toggle:hover { background: var(--surface-2); color: var(--text); }
+    .diff-toggle.active {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
+    }
+    .diff-toggle-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
 
-      /* Panel footer */
-      .panel__ft {
-        display: flex;
-        align-items: center;
-        padding: 5px 12px;
-        border-top: 1px solid var(--border);
-        background: var(--surface-hover);
-        flex-shrink: 0;
-      }
-      .panel.collapsed .panel__ft { display: none; }
+    /* Panel body */
+    .panel-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
 
-      .char-count { font-size: 11px; color: var(--text-placeholder); font-variant-numeric: tabular-nums; }
+    textarea {
+      flex: 1;
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13.5px;
+      line-height: 1.7;
+      font-weight: 400;
+      padding: 13px 15px;
+      resize: none;
+      min-height: 0;
+    }
+    textarea::placeholder { color: var(--text-3); }
+    textarea[readonly] { cursor: default; }
 
-      /* Skeleton */
-      .skel { display: none; flex-direction: column; gap: 9px; padding: 14px 16px; }
-      .panel.fetching .skel { display: flex; }
-      .panel.fetching textarea { display: none; }
+    /* Diff view */
+    .diff-view {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      padding: 13px 15px;
+      font-family: var(--font);
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: var(--text);
+      word-break: break-word;
+    }
+    .diff-view.on { display: block; }
+    .diff-view textarea { display: none; }
 
-      .skel-ln {
-        height: 12px;
-        border-radius: 4px;
-        background: linear-gradient(90deg, #f2f2f0 25%, #e6e6e3 50%, #f2f2f0 75%);
-        background-size: 300% 100%;
-        animation: shimmer 1.3s infinite;
-      }
-      .skel-ln:nth-child(2) { width: 85%; }
-      .skel-ln:nth-child(3) { width: 72%; }
-      .skel-ln:nth-child(4) { width: 91%; }
-      .skel-ln:nth-child(5) { width: 60%; }
+    ins {
+      background: var(--ins-bg);
+      color: var(--ins-text);
+      text-decoration: none;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+    del {
+      background: var(--del-bg);
+      color: var(--del-text);
+      text-decoration: line-through;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
 
-      /* Animations */
-      @keyframes spin { to { transform: rotate(360deg); } }
-      @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.25; } }
-      @keyframes shimmer { 0% { background-position:100% 0; } 100% { background-position:-100% 0; } }
-      @keyframes fadeUp { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+    /* Diff legend */
+    .diff-legend {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 5px 12px;
+      border-top: 1px solid var(--border-soft);
+      background: var(--surface-2);
+      flex-shrink: 0;
+    }
+    .diff-legend.on { display: flex; }
 
-      .anim-in { animation: fadeUp 0.22s ease both; }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--text-2);
+    }
+    .legend-dot {
+      width: 8px; height: 8px;
+      border-radius: 2px;
+    }
+    .legend-dot.ins { background: var(--ins-bg); border: 1px solid #8ed4a8; }
+    .legend-dot.del { background: var(--del-bg); border: 1px solid #f5a89e; }
 
-      /* Responsive */
-      @media (max-width: 700px) {
-        .workspace { flex-direction: column; }
-        .panel { border-right: none; border-bottom: 1px solid var(--border); }
-        .panel:last-child { border-bottom: none; }
-        .panel.collapsed { flex: 0 0 36px; min-width: unset; max-width: unset; }
-        .panel.collapsed .panel__hd { flex-direction: row; height: 36px; padding: 0 12px; border-bottom: 1px solid var(--border); }
-        .panel.collapsed .panel__title { writing-mode: initial; transform: none; }
-        .panel.collapsed .panel__hd-left { flex-direction: row; }
-        .header__sub { display: none; }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="app">
+    /* Skeleton */
+    .skel {
+      display: none;
+      flex-direction: column;
+      gap: 9px;
+      padding: 13px 15px;
+    }
+    .panel.fetching .skel { display: flex; }
+    .panel.fetching textarea,
+    .panel.fetching .diff-view { display: none !important; }
 
-      <header class="header">
-        <div class="header__left">
-          <span class="logo">Mejora</span>
-          <div class="sep"></div>
-          <span class="header__sub">Corrección y traducción</span>
+    .skel-ln {
+      height: 11px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #f2f1ee 25%, #e8e7e2 50%, #f2f1ee 75%);
+      background-size: 300% 100%;
+      animation: shimmer 1.25s infinite;
+    }
+    .skel-ln:nth-child(2) { width: 88%; animation-delay: 0.08s; }
+    .skel-ln:nth-child(3) { width: 73%; animation-delay: 0.16s; }
+    .skel-ln:nth-child(4) { width: 92%; animation-delay: 0.24s; }
+    .skel-ln:nth-child(5) { width: 61%; animation-delay: 0.32s; }
+
+    /* Panel footer */
+    .panel-ft {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 12px;
+      border-top: 1px solid var(--border-soft);
+      background: var(--surface-2);
+      flex-shrink: 0;
+    }
+
+    .char-count {
+      font-size: 11px;
+      color: var(--text-3);
+      font-family: var(--mono);
+    }
+
+    /* Diff stats */
+    .diff-stats {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-family: var(--mono);
+    }
+    .diff-stats.on { display: flex; }
+    .stat-ins { color: var(--ins-text); }
+    .stat-del { color: var(--del-text); }
+
+    /* Animations */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.25; } }
+    @keyframes shimmer { 0% { background-position:100% 0; } 100% { background-position:-100% 0; } }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(3px); } to { opacity:1; transform:translateY(0); } }
+    .anim-in { animation: fadeUp 0.2s ease both; }
+
+    /* Responsive */
+    @media (max-width: 720px) {
+      .workspace { flex-direction: column; }
+      .panel { border-right: none; border-bottom: 1px solid var(--border); }
+      .panel:last-child { border-bottom: none; }
+      .hdr-sub { display: none; }
+      .ctx-label { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="hdr">
+    <span class="logo">Mejora</span>
+    <div class="hdr-sep"></div>
+    <span class="hdr-sub">Corrección y traducción</span>
+    <div class="hdr-gap"></div>
+    <div id="autoPill" class="auto-pill">Auto</div>
+  </header>
+
+  <!-- Context chips -->
+  <div class="ctx-bar">
+    <span class="ctx-label">Contexto</span>
+    <button class="chip active" data-ctx="general">
+      <span class="chip-icon">✦</span> General
+    </button>
+    <button class="chip" data-ctx="email">
+      <span class="chip-icon">✉</span> Email
+    </button>
+    <button class="chip" data-ctx="slack">
+      <span class="chip-icon">◈</span> Slack
+    </button>
+    <button class="chip" data-ctx="formal">
+      <span class="chip-icon">◻</span> Formal
+    </button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="btn btn-primary" id="mejorarBtn">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+        <path d="M8 2l1.3 3.9H13.4L9.8 8.1l1.3 3.9L8 9.8l-3.1 2.2 1.3-3.9L2.6 5.9H7.7z" fill="currentColor"/>
+      </svg>
+      Mejorar
+    </button>
+    <button class="btn btn-secondary" id="limpiarBtn">Limpiar</button>
+    <div class="toolbar-gap"></div>
+    <div class="status" id="statusEl">
+      <span class="status-dot"></span>
+      Procesando...
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-bar" id="errorBar" role="alert" aria-live="assertive">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+      <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M8 5v3.5M8 11h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <span id="errorText"></span>
+  </div>
+
+  <!-- Workspace -->
+  <div class="workspace">
+
+    <!-- Panel 1: Entrada -->
+    <div class="panel" id="p-input">
+      <div class="panel-hd">
+        <div class="panel-hd-left">
+          <span class="panel-title">Entrada</span>
+          <span class="lang-pill">ES</span>
         </div>
-        <div id="autoBadge" class="auto-badge">Auto</div>
-      </header>
-
-      <div class="toolbar">
-        <button class="btn btn-primary" id="mejorarBtn">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-            <path d="M8 2l1.3 3.9H13.4L9.8 8.1l1.3 3.9L8 9.8l-3.1 2.2 1.3-3.9L2.6 5.9H7.7z" fill="currentColor"/>
-          </svg>
-          Mejorar
-        </button>
-        <button class="btn btn-secondary" id="limpiarBtn">Limpiar</button>
-        <div class="toolbar__gap"></div>
-        <div class="status" id="statusEl">
-          <span class="status__dot"></span>
-          Procesando...
+        <div class="panel-hd-right">
+          <button class="btn btn-ghost" data-copy="inputText">Copiar</button>
         </div>
       </div>
-
-      <div class="error-bar" id="errorBar" role="alert" aria-live="assertive">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M8 5v3.5M8 11h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span id="errorText"></span>
+      <div class="panel-body">
+        <textarea
+          id="inputText"
+          placeholder="Escribe aquí tu texto..."
+          spellcheck="true"
+        ></textarea>
       </div>
-
-      <div class="workspace">
-
-        <!-- Panel Entrada -->
-        <div class="panel" id="p-input">
-          <div class="panel__hd">
-            <div class="panel__hd-left">
-              <span class="panel__title">Entrada</span>
-              <span class="lang-pill">ES</span>
-            </div>
-            <div class="panel__hd-right">
-              <button class="btn btn-ghost" data-copy="inputText">Copiar</button>
-            </div>
-          </div>
-          <div class="panel__body">
-            <textarea id="inputText" placeholder="Escribe aquí tu texto..." spellcheck="true"></textarea>
-          </div>
-          <div class="panel__ft">
-            <span class="char-count" id="cnt-input">0 car.</span>
-          </div>
-        </div>
-
-        <!-- Panel Mejorado (colapsable) -->
-        <div class="panel collapsed" id="p-mejorado">
-          <div class="panel__hd" id="hd-mejorado">
-            <div class="panel__hd-left">
-              <span class="panel__title">Mejorado</span>
-              <span class="lang-pill">ES</span>
-            </div>
-            <div class="panel__hd-right">
-              <button class="btn btn-ghost" data-copy="mejoradoText">Copiar</button>
-              <button class="btn btn-icon" id="toggleMejorado" title="Ocultar">
-                <svg id="toggleIcon" width="15" height="15" viewBox="0 0 16 16" fill="none">
-                  <path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-          <div class="panel__body">
-            <div class="skel">
-              <div class="skel-ln"></div><div class="skel-ln"></div>
-              <div class="skel-ln"></div><div class="skel-ln"></div>
-              <div class="skel-ln"></div>
-            </div>
-            <textarea id="mejoradoText" placeholder="El texto mejorado aparecerá aquí..." readonly></textarea>
-          </div>
-          <div class="panel__ft">
-            <span class="char-count" id="cnt-mejorado">—</span>
-          </div>
-        </div>
-
-        <!-- Panel Traducción -->
-        <div class="panel" id="p-english">
-          <div class="panel__hd">
-            <div class="panel__hd-left">
-              <span class="panel__title">Traducción</span>
-              <span class="lang-pill en">EN</span>
-            </div>
-            <div class="panel__hd-right">
-              <button class="btn btn-ghost" data-copy="englishText">Copiar</button>
-            </div>
-          </div>
-          <div class="panel__body">
-            <div class="skel">
-              <div class="skel-ln"></div><div class="skel-ln"></div>
-              <div class="skel-ln"></div><div class="skel-ln"></div>
-              <div class="skel-ln"></div>
-            </div>
-            <textarea id="englishText" placeholder="The English translation will appear here..." readonly></textarea>
-          </div>
-          <div class="panel__ft">
-            <span class="char-count" id="cnt-english">—</span>
-          </div>
-        </div>
-
+      <div class="panel-ft">
+        <span class="char-count" id="cnt-input">0</span>
       </div>
     </div>
 
-    <script>
-      const $  = id => document.getElementById(id);
-      const inputText    = $('inputText');
-      const mejoradoText = $('mejoradoText');
-      const englishText  = $('englishText');
-      const mejorarBtn   = $('mejorarBtn');
-      const limpiarBtn   = $('limpiarBtn');
-      const statusEl     = $('statusEl');
-      const errorBar     = $('errorBar');
-      const errorText    = $('errorText');
-      const autoBadge    = $('autoBadge');
-      const pMejorado    = $('p-mejorado');
-      const toggleBtn    = $('toggleMejorado');
-      const toggleIcon   = $('toggleIcon');
+    <!-- Panel 2: Mejorado + Diff -->
+    <div class="panel" id="p-mejorado">
+      <div class="panel-hd">
+        <div class="panel-hd-left">
+          <span class="panel-title">Mejorado</span>
+          <span class="lang-pill">ES</span>
+        </div>
+        <div class="panel-hd-right">
+          <button class="diff-toggle" id="diffToggle">
+            <span class="diff-toggle-dot"></span>
+            Diff
+          </button>
+          <button class="btn btn-ghost" data-copy="mejoradoText">Copiar</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="skel">
+          <div class="skel-ln"></div><div class="skel-ln"></div>
+          <div class="skel-ln"></div><div class="skel-ln"></div>
+          <div class="skel-ln"></div>
+        </div>
+        <!-- Diff view -->
+        <div class="diff-view" id="diffView"></div>
+        <!-- Plain text view -->
+        <textarea id="mejoradoText" placeholder="El texto mejorado aparecerá aquí..." readonly></textarea>
+      </div>
+      <!-- Diff legend (shown when diff active) -->
+      <div class="diff-legend" id="diffLegend">
+        <div class="legend-item">
+          <span class="legend-dot ins"></span> Añadido
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot del"></span> Eliminado
+        </div>
+      </div>
+      <div class="panel-ft">
+        <span class="char-count" id="cnt-mejorado">—</span>
+        <div class="diff-stats" id="diffStats"></div>
+      </div>
+    </div>
 
-      // ── Restore
-      const STORAGE_KEY = 'mejora:last-input';
-      inputText.value = localStorage.getItem(STORAGE_KEY) || '';
-      syncCount(inputText, 'cnt-input');
+    <!-- Panel 3: Traducción -->
+    <div class="panel" id="p-english">
+      <div class="panel-hd">
+        <div class="panel-hd-left">
+          <span class="panel-title">Traducción</span>
+          <span class="lang-pill en">EN</span>
+        </div>
+        <div class="panel-hd-right">
+          <button class="btn btn-ghost" data-copy="englishText">Copiar</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="skel">
+          <div class="skel-ln"></div><div class="skel-ln"></div>
+          <div class="skel-ln"></div><div class="skel-ln"></div>
+          <div class="skel-ln"></div>
+        </div>
+        <textarea id="englishText" placeholder="The English translation will appear here..." readonly></textarea>
+      </div>
+      <div class="panel-ft">
+        <span class="char-count" id="cnt-english">—</span>
+      </div>
+    </div>
 
-      // ── Panel toggle
-      let panelOpen = false;
-      const IC_LEFT  = `<path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
-      const IC_RIGHT = `<path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  </div>
+</div>
 
-      function setPanel(open) {
-        panelOpen = open;
-        pMejorado.classList.toggle('collapsed', !open);
-        toggleIcon.innerHTML = open ? IC_RIGHT : IC_LEFT;
-        toggleBtn.title = open ? 'Ocultar' : 'Mostrar';
-      }
+<script>
+  const $ = id => document.getElementById(id);
 
-      toggleBtn.addEventListener('click', () => setPanel(!panelOpen));
+  // Elements
+  const inputText    = $('inputText');
+  const mejoradoText = $('mejoradoText');
+  const englishText  = $('englishText');
+  const mejorarBtn   = $('mejorarBtn');
+  const limpiarBtn   = $('limpiarBtn');
+  const statusEl     = $('statusEl');
+  const errorBar     = $('errorBar');
+  const errorText    = $('errorText');
+  const autoPill     = $('autoPill');
+  const diffToggle   = $('diffToggle');
+  const diffView     = $('diffView');
+  const diffLegend   = $('diffLegend');
+  const diffStats    = $('diffStats');
 
-      // Click on collapsed panel header to expand
-      $('hd-mejorado').addEventListener('click', e => {
-        if (!panelOpen && !e.target.closest('.btn')) setPanel(true);
+  // ── Restore last input
+  const STORAGE_KEY = 'mejora:last-input';
+  inputText.value = localStorage.getItem(STORAGE_KEY) || '';
+  syncCount(inputText, 'cnt-input');
+
+  // ── Context chips
+  let activeCtx = 'general';
+  const CTX_LABELS = {
+    general: 'General',
+    email:   'Email',
+    slack:   'Slack',
+    formal:  'Formal'
+  };
+
+  document.querySelectorAll('.chip[data-ctx]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      activeCtx = chip.dataset.ctx;
+      document.querySelectorAll('.chip[data-ctx]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+
+  // ── Diff toggle
+  let diffOn = false;
+
+  diffToggle.addEventListener('click', () => {
+    diffOn = !diffOn;
+    diffToggle.classList.toggle('active', diffOn);
+    applyDiffView();
+  });
+
+  function applyDiffView() {
+    const original = inputText.value;
+    const improved = mejoradoText.value;
+
+    if (diffOn && improved) {
+      const html = buildDiff(original, improved);
+      diffView.innerHTML = html;
+      diffView.classList.add('on');
+      mejoradoText.style.display = 'none';
+      diffLegend.classList.add('on');
+      updateDiffStats(original, improved);
+    } else {
+      diffView.classList.remove('on');
+      mejoradoText.style.display = '';
+      diffLegend.classList.remove('on');
+      diffStats.classList.remove('on');
+    }
+  }
+
+  function buildDiff(original, improved) {
+    const dmp = new diff_match_patch();
+    const diffs = dmp.diff_main(original, improved);
+    dmp.diff_cleanupSemantic(diffs);
+
+    return diffs.map(([op, text]) => {
+      const escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>');
+      if (op === 1)  return `<ins>${escaped}</ins>`;
+      if (op === -1) return `<del>${escaped}</del>`;
+      return escaped;
+    }).join('');
+  }
+
+  function updateDiffStats(original, improved) {
+    const dmp = new diff_match_patch();
+    const diffs = dmp.diff_main(original, improved);
+    let ins = 0, del = 0;
+    diffs.forEach(([op, text]) => {
+      if (op === 1)  ins += text.length;
+      if (op === -1) del += text.length;
+    });
+    diffStats.innerHTML = `
+      <span class="stat-ins">+${ins}</span>
+      <span class="stat-del">−${del}</span>
+    `;
+    diffStats.classList.add('on');
+  }
+
+  // ── Auto-translate debounce (1.5s)
+  let timer = null;
+  let lastText = '';
+
+  inputText.addEventListener('input', () => {
+    localStorage.setItem(STORAGE_KEY, inputText.value);
+    syncCount(inputText, 'cnt-input');
+    clearTimeout(timer);
+    const val = inputText.value.trim();
+    if (!val) { autoPill.classList.remove('on'); return; }
+    autoPill.classList.add('on');
+    timer = setTimeout(() => {
+      autoPill.classList.remove('on');
+      if (val !== lastText) runMejorar(val);
+    }, 1500);
+  });
+
+  // ── Copy buttons
+  document.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      // If diff is showing for mejorado, copy clean text
+      const el = $(btn.dataset.copy);
+      if (!el?.value.trim()) return;
+      try {
+        await navigator.clipboard.writeText(el.value);
+        const prev = btn.textContent.trim();
+        btn.textContent = '✓ Copiado';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 1400);
+      } catch { showErr('No se pudo copiar.'); }
+    });
+  });
+
+  // ── Clear
+  limpiarBtn.addEventListener('click', () => {
+    clearTimeout(timer);
+    inputText.value = mejoradoText.value = englishText.value = '';
+    localStorage.removeItem(STORAGE_KEY);
+    lastText = '';
+    clearErr(); hideStatus();
+    autoPill.classList.remove('on');
+    diffView.innerHTML = '';
+    diffView.classList.remove('on');
+    diffLegend.classList.remove('on');
+    diffStats.classList.remove('on');
+    mejoradoText.style.display = '';
+    $('cnt-input').textContent = '0';
+    $('cnt-mejorado').textContent = $('cnt-english').textContent = '—';
+  });
+
+  // ── Mejorar button
+  mejorarBtn.addEventListener('click', () => {
+    clearTimeout(timer);
+    autoPill.classList.remove('on');
+    runMejorar(inputText.value.trim());
+  });
+
+  // ── Core
+  async function runMejorar(text) {
+    if (!text) { showErr('Escribe un texto para continuar.'); return; }
+    clearErr();
+    setLoading(true);
+    lastText = text;
+
+    try {
+      const res = await fetch('/api/mejorar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, context: activeCtx }),
       });
 
-      // ── Auto-translate debounce
-      let timer = null;
-      let lastText = '';
+      let data = null;
+      try { data = await res.json(); } catch {}
 
-      inputText.addEventListener('input', () => {
-        localStorage.setItem(STORAGE_KEY, inputText.value);
-        syncCount(inputText, 'cnt-input');
-        clearTimeout(timer);
-        const val = inputText.value.trim();
-        if (!val) { autoBadge.classList.remove('on'); return; }
-        autoBadge.classList.add('on');
-        timer = setTimeout(() => {
-          autoBadge.classList.remove('on');
-          if (val !== lastText) runMejorar(val);
-        }, 1500);
+      if (!res.ok) { showErr(data?.error || 'No se pudo procesar la solicitud.'); return; }
+      if (!data)   { showErr('Respuesta no válida del servidor.'); return; }
+
+      mejoradoText.value = data.mejorado || '';
+      englishText.value  = data.english  || '';
+
+      // Animate new content
+      [mejoradoText, englishText].forEach(el => {
+        el.classList.remove('anim-in');
+        void el.offsetWidth;
+        el.classList.add('anim-in');
       });
 
-      // ── Copy
-      document.querySelectorAll('[data-copy]').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const el = $(btn.dataset.copy);
-          if (!el?.value.trim()) return;
-          try {
-            await navigator.clipboard.writeText(el.value);
-            btn.textContent = '✓ Copiado';
-            btn.classList.add('copied');
-            setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 1400);
-          } catch { showErr('No se pudo copiar.'); }
-        });
-      });
+      syncCount(mejoradoText, 'cnt-mejorado');
+      syncCount(englishText,  'cnt-english');
 
-      // ── Clear
-      limpiarBtn.addEventListener('click', () => {
-        clearTimeout(timer);
-        inputText.value = mejoradoText.value = englishText.value = '';
-        localStorage.removeItem(STORAGE_KEY);
-        lastText = '';
-        clearErr(); hideStatus(); autoBadge.classList.remove('on');
-        $('cnt-input').textContent = '0 car.';
-        $('cnt-mejorado').textContent = $('cnt-english').textContent = '—';
-      });
+      // Refresh diff if active
+      if (diffOn) applyDiffView();
 
-      // ── Mejorar button
-      mejorarBtn.addEventListener('click', () => {
-        clearTimeout(timer);
-        autoBadge.classList.remove('on');
-        runMejorar(inputText.value.trim());
-      });
+    } catch (e) {
+      showErr(e.message || 'Error de red.');
+    } finally {
+      setLoading(false);
+    }
+  }
 
-      // ── Core
-      async function runMejorar(text) {
-        if (!text) { showErr('Escribe un texto para continuar.'); return; }
-        clearErr();
-        setLoading(true);
-        lastText = text;
-        try {
-          const res = await fetch('/api/mejorar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text }),
-          });
-          let data = null;
-          try { data = await res.json(); } catch {}
-          if (!res.ok) { showErr(data?.error || 'No se pudo procesar la solicitud.'); return; }
-          if (!data)   { showErr('Respuesta no válida del servidor.'); return; }
+  // ── Helpers
+  function setLoading(on) {
+    mejorarBtn.disabled = on;
+    mejorarBtn.classList.toggle('loading', on);
+    statusEl.classList.toggle('on', on);
+    ['p-mejorado', 'p-english'].forEach(id => $(id).classList.toggle('fetching', on));
+    if (on) {
+      mejoradoText.value = englishText.value = '';
+      diffView.innerHTML = '';
+      diffView.classList.remove('on');
+      diffLegend.classList.remove('on');
+      diffStats.classList.remove('on');
+      mejoradoText.style.display = '';
+      $('cnt-mejorado').textContent = $('cnt-english').textContent = '—';
+    }
+  }
 
-          mejoradoText.value = data.mejorado || '';
-          englishText.value  = data.english  || '';
-          [mejoradoText, englishText].forEach(el => {
-            el.classList.remove('anim-in');
-            void el.offsetWidth;
-            el.classList.add('anim-in');
-          });
-          syncCount(mejoradoText, 'cnt-mejorado');
-          syncCount(englishText,  'cnt-english');
-        } catch (e) {
-          showErr(e.message || 'Error de red.');
-        } finally {
-          setLoading(false);
-        }
-      }
+  function hideStatus() { statusEl.classList.remove('on'); }
 
-      // ── Helpers
-      function setLoading(on) {
-        mejorarBtn.disabled = on;
-        mejorarBtn.classList.toggle('loading', on);
-        statusEl.classList.toggle('on', on);
-        ['p-mejorado', 'p-english'].forEach(id => $(id).classList.toggle('fetching', on));
-        if (on) {
-          mejoradoText.value = englishText.value = '';
-          $('cnt-mejorado').textContent = $('cnt-english').textContent = '—';
-        }
-      }
+  function showErr(msg) {
+    errorText.textContent = msg;
+    errorBar.classList.add('on');
+    setTimeout(() => errorBar.classList.remove('on'), 5000);
+  }
+  function clearErr() { errorBar.classList.remove('on'); }
 
-      function hideStatus() { statusEl.classList.remove('on'); }
-
-      function showErr(msg) {
-        errorText.textContent = msg;
-        errorBar.classList.add('on');
-        setTimeout(() => errorBar.classList.remove('on'), 5000);
-      }
-      function clearErr() { errorBar.classList.remove('on'); }
-
-      function syncCount(ta, id) {
-        const n = ta.value.length;
-        $(id).textContent = n === 0 ? '0 car.' : `${n.toLocaleString()} car.`;
-      }
-    </script>
-  </body>
+  function syncCount(ta, id) {
+    const n = ta.value.length;
+    $(id).textContent = n === 0 ? '0' : n.toLocaleString();
+  }
+</script>
+</body>
 </html>

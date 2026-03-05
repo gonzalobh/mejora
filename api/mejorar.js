@@ -2,6 +2,20 @@ import OpenAI from 'openai';
 
 const ALLOWED_TONES = ['simple', 'professional', 'executive'];
 
+const CONTEXT_INSTRUCTIONS = {
+  general:    'Mantén un tono neutro y claro.',
+  email:      'El texto es para un email profesional. Cuida la estructura, el saludo y la cortesía apropiada.',
+  slack:      'El texto es para un mensaje de Slack entre compañeros. Hazlo conciso, directo y ligeramente informal.',
+  formal:     'El texto es para un documento o comunicación formal. Usa un registro elevado, preciso y sin coloquialismos.',
+};
+
+const CONTEXT_TRANSLATION_HINTS = {
+  general:    'Translate naturally and clearly.',
+  email:      'This is a professional email. Maintain appropriate business email tone and structure.',
+  slack:      'This is a Slack message between colleagues. Keep it concise and slightly informal.',
+  formal:     'This is a formal document or communication. Use formal, precise language.',
+};
+
 const toneOutputSchema = {
   type: 'object',
   additionalProperties: false,
@@ -28,6 +42,14 @@ function safeJsonParse(value) {
   try { return JSON.parse(value); } catch { return null; }
 }
 
+function getContextInstruction(context) {
+  return CONTEXT_INSTRUCTIONS[context] || CONTEXT_INSTRUCTIONS.general;
+}
+
+function getContextTranslationHint(context) {
+  return CONTEXT_TRANSLATION_HINTS[context] || CONTEXT_TRANSLATION_HINTS.general;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido.' });
@@ -44,7 +66,7 @@ export default async function handler(req, res) {
   const client = new OpenAI({ apiKey });
 
   try {
-    const { text, spanish_input: spanishInput, mode, tone_preferences: tonePreferences, context } = req.body || {};
+    const { text, context, spanish_input: spanishInput, mode, tone_preferences: tonePreferences } = req.body || {};
 
     // ── Legacy /spanish_input flow ──────────────────────────────────────────
     if (typeof spanishInput === 'string' && spanishInput.trim()) {
@@ -141,23 +163,21 @@ export default async function handler(req, res) {
       return res.status(200).json({ improved_spanish: improvedSpanish, results });
     }
 
-    // ── Main flow: mejorar + traducir en PARALELO ───────────────────────────
+    // ── Main flow: mejorar + traducir en PARALELO con contexto ──────────────
     if (!text || typeof text !== 'string') {
       return res.status(400).json({ error: 'Se requiere un texto válido.' });
     }
 
-    // Fire both requests at the same time to halve latency.
-    // The translation prompt uses the original text as fallback; once mejorado
-    // resolves, it has already translated the corrected version. Both models
-    // run concurrently so total time ≈ max(t_mejorado, t_english) instead of sum.
+    const ctxInstruction      = getContextInstruction(context);
+    const ctxTranslationHint  = getContextTranslationHint(context);
+
     const [mejoraResponse, translationResponse] = await Promise.all([
       client.responses.create({
         model: 'gpt-4.1-mini',
         input: [
           {
             role: 'system',
-            content:
-              'Eres un editor experto en español. Corrige ortografía y puntuación, mejora redacción con cambios mínimos, mantén significado y tono. Responde SOLO con el texto mejorado, sin comillas ni explicaciones.',
+            content: `Eres un editor experto en español. Corrige ortografía y puntuación, mejora redacción con cambios mínimos, mantén significado y tono. ${ctxInstruction} Responde SOLO con el texto mejorado, sin comillas ni explicaciones.`,
           },
           { role: 'user', content: text },
         ],
@@ -167,8 +187,7 @@ export default async function handler(req, res) {
         input: [
           {
             role: 'system',
-            content:
-              'Eres un traductor profesional al inglés. Traduce fielmente el texto proporcionado, manteniendo tono y significado. Responde SOLO con la traducción en inglés, sin comillas ni explicaciones.',
+            content: `Eres un traductor profesional al inglés. Traduce fielmente el texto proporcionado, manteniendo tono y significado. ${ctxTranslationHint} Responde SOLO con la traducción en inglés, sin comillas ni explicaciones.`,
           },
           { role: 'user', content: text },
         ],
