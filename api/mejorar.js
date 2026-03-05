@@ -2,6 +2,10 @@ import OpenAI from 'openai';
 
 const ALLOWED_TONES = ['simple', 'professional', 'executive'];
 
+// Phase separator — written between Spanish and English phases
+const PHASE_SEP = '\x00PHASE:english\x00';
+const ERROR_TOKEN = (msg) => `\x00ERROR:${msg}\x00`;
+
 // Context-aware editor prompts (Spanish)
 const EDITOR_PROMPTS = {
   general: `Eres un editor experto en español. Corrige ortografía, tildes y puntuación. Mejora la redacción con cambios mínimos, mantén el significado y tono. Responde SOLO con el texto mejorado, sin comillas ni explicaciones.`,
@@ -40,7 +44,7 @@ Reescribe el texto para que sea:
 Responde SOLO con el texto mejorado, sin comillas ni explicaciones.`,
 };
 
-// Context-aware translator prompts (English) — translate the MEJORADO text
+// Context-aware translator prompts (English)
 const TRANSLATOR_PROMPTS = {
   general: `You are a professional Spanish-to-English translator. Translate the text faithfully, preserving tone and meaning. Respond ONLY with the English translation, no quotes or explanations.`,
 
@@ -99,12 +103,39 @@ function safeJsonParse(value) {
   try { return JSON.parse(value); } catch { return null; }
 }
 
-// Dialect instruction appended to translator prompts
 function getDialectInstruction(dialect) {
   if (dialect === 'uk') {
     return ' Use British English spelling, vocabulary, and conventions (e.g. colour, realise, whilst, lift instead of elevator, etc.).';
   }
   return ' Use American English spelling, vocabulary, and conventions.';
+}
+
+// ── Stream one Responses API call, piping delta tokens directly to res ───────
+// Returns the full accumulated text.
+async function streamResponse(client, systemPrompt, userContent, res) {
+  const stream = await client.responses.create({
+    model: 'gpt-4.1-mini',
+    stream: true,
+    input: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user',   content: userContent  },
+    ],
+  });
+
+  let fullText = '';
+
+  for await (const event of stream) {
+    // The Responses API emits 'response.output_text.delta' events while streaming
+    if (event.type === 'response.output_text.delta') {
+      const token = event.delta ?? '';
+      if (token) {
+        fullText += token;
+        res.write(token);
+      }
+    }
+  }
+
+  return fullText;
 }
 
 export default async function handler(req, res) {
@@ -120,9 +151,16 @@ export default async function handler(req, res) {
   const client = new OpenAI({ apiKey });
 
   try {
-    const { text, context, dialect, spanish_input: spanishInput, mode, tone_preferences: tonePreferences } = req.body || {};
+    const {
+      text,
+      context,
+      dialect,
+      spanish_input: spanishInput,
+      mode,
+      tone_preferences: tonePreferences,
+    } = req.body || {};
 
-    // ── Legacy /spanish_input flow ─────────────────────────────────────────
+    // ── Legacy /spanish_input flow (non-streaming, unchanged) ────────────────
     if (typeof spanishInput === 'string' && spanishInput.trim()) {
       const normalizedMode = typeof mode === 'string' ? mode.trim() : '';
       if (normalizedMode !== '' && normalizedMode !== 'anti_latino') {
@@ -134,7 +172,7 @@ export default async function handler(req, res) {
         model: 'gpt-4.1-mini',
         input: [
           { role: 'system', content: EDITOR_PROMPTS.general },
-          { role: 'user', content: spanishInput },
+          { role: 'user',   content: spanishInput },
         ],
       });
       const improvedSpanish = (mejoraResponse.output_text || '').trim();
@@ -156,9 +194,9 @@ export default async function handler(req, res) {
                   type: 'object',
                   additionalProperties: false,
                   properties: {
-                    simple: toneOutputSchema,
+                    simple:       toneOutputSchema,
                     professional: toneOutputSchema,
-                    executive: toneOutputSchema,
+                    executive:    toneOutputSchema,
                   },
                 },
               },
@@ -201,45 +239,54 @@ export default async function handler(req, res) {
       return res.status(200).json({ improved_spanish: improvedSpanish, results });
     }
 
-    // ── Main flow ──────────────────────────────────────────────────────────
-    if (!text || typeof text !== 'string') {
+    // ── Main streaming flow ──────────────────────────────────────────────────
+    if (!text || typeof text !== 'string' || !text.trim()) {
       return res.status(400).json({ error: 'Se requiere un texto válido.' });
     }
 
-    const ctx = typeof context === 'string' ? context.trim() : 'general';
-    const dialectSuffix = getDialectInstruction(dialect);
-    const editorPrompt = EDITOR_PROMPTS[ctx] || EDITOR_PROMPTS.general;
-    const translatorPrompt = (TRANSLATOR_PROMPTS[ctx] || TRANSLATOR_PROMPTS.general) + dialectSuffix;
+    const ctx              = (typeof context === 'string' ? context.trim() : '') || 'general';
+    const dialectSuffix    = getDialectInstruction(dialect);
+    const editorPrompt     = EDITOR_PROMPTS[ctx]     ?? EDITOR_PROMPTS.general;
+    const translatorPrompt = (TRANSLATOR_PROMPTS[ctx] ?? TRANSLATOR_PROMPTS.general) + dialectSuffix;
 
-    // Step 1: Improve Spanish first
-    const mejoraResponse = await client.responses.create({
-      model: 'gpt-4.1-mini',
-      input: [
-        { role: 'system', content: editorPrompt },
-        { role: 'user', content: text },
-      ],
-    });
+    // Streaming headers — plain chunked text, frontend reads via fetch + ReadableStream
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('X-Accel-Buffering', 'no'); // disable nginx buffering
+    res.flushHeaders();
 
-    const mejorado = (mejoraResponse.output_text || '').trim();
-    if (!mejorado) return res.status(502).json({ error: 'No se pudo mejorar el texto.' });
+    // Phase 1 — stream improved Spanish
+    const mejorado = await streamResponse(client, editorPrompt, text.trim(), res);
 
-    // Step 2: Translate the MEJORADO text (not original)
-    // This ensures translation inherits the correct context format (email structure, etc.)
-    const translationResponse = await client.responses.create({
-      model: 'gpt-4.1-mini',
-      input: [
-        { role: 'system', content: translatorPrompt },
-        { role: 'user', content: mejorado },
-      ],
-    });
+    if (!mejorado.trim()) {
+      res.write(ERROR_TOKEN('No se pudo mejorar el texto.'));
+      return res.end();
+    }
 
-    const english = (translationResponse.output_text || '').trim();
-    if (!english) return res.status(502).json({ error: 'No se pudo traducir el texto.' });
+    // Signal phase switch — frontend starts writing to the English panel
+    res.write(PHASE_SEP);
 
-    return res.status(200).json({ mejorado, english });
+    // Phase 2 — stream English translation of the mejorado text
+    const english = await streamResponse(client, translatorPrompt, mejorado.trim(), res);
+
+    if (!english.trim()) {
+      res.write(ERROR_TOKEN('No se pudo traducir el texto.'));
+    }
+
+    res.end();
 
   } catch (error) {
     console.error('Error en /api/mejorar:', error);
-    return res.status(500).json({ error: 'Error interno.', details: error.message });
+
+    if (res.headersSent) {
+      // Stream already started — emit inline error token and close gracefully
+      try {
+        res.write(ERROR_TOKEN(error.message || 'Error interno.'));
+        res.end();
+      } catch {}
+    } else {
+      res.status(500).json({ error: 'Error interno.', details: error.message });
+    }
   }
 }
