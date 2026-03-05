@@ -379,21 +379,12 @@
     }
     .panel.has-content .empty-hint{display:none}
 
-    /* ── Skeleton ── */
-    .skel{display:none;flex-direction:column;gap:12px;padding:18px}
-    .panel.fetching .skel{display:flex}
-    .panel.fetching textarea,.panel.fetching .diff-view{display:none!important}
-    .panel.fetching .empty-hint{display:none}
 
-    .skel-ln{
-      height:11px;border-radius:4px;
-      background:linear-gradient(90deg,var(--sand) 25%,var(--sand-2) 50%,var(--sand) 75%);
-      background-size:300%;animation:shimmer 1.5s infinite;
+    /* streaming indicator dot on panel title */
+    .panel.streaming .panel__title::after{
+      content:' ●';color:var(--a);font-size:7px;
+      vertical-align:middle;animation:pulse .8s ease-in-out infinite;
     }
-    .skel-ln:nth-child(2){width:78%}
-    .skel-ln:nth-child(3){width:62%}
-    .skel-ln:nth-child(4){width:85%}
-    .skel-ln:nth-child(5){width:50%}
 
     /* ────────────────────────────────────────
        ANIMATIONS
@@ -403,6 +394,7 @@
     @keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
     @keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
     @keyframes speakPulse{0%,100%{opacity:1}50%{opacity:.4}}
+    @keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
 
     .anim{animation:fadeUp .2s ease both}
 
@@ -503,7 +495,6 @@
         </div>
       </div>
       <div class="panel__body">
-        <div class="skel"><div class="skel-ln"></div><div class="skel-ln"></div><div class="skel-ln"></div><div class="skel-ln"></div><div class="skel-ln"></div></div>
         <div class="empty-hint">
           <div class="empty-hint__ring">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -534,7 +525,6 @@
         </div>
       </div>
       <div class="panel__body">
-        <div class="skel"><div class="skel-ln"></div><div class="skel-ln"></div><div class="skel-ln"></div><div class="skel-ln"></div><div class="skel-ln"></div></div>
         <div class="empty-hint">
           <div class="empty-hint__ring">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -645,6 +635,8 @@ window.speechSynthesis.onvoiceschanged=()=>{};
 
 /* ── Limpiar ─────────────────────────────────────────────────────────────── */
 limpiarBtn.addEventListener('click',()=>{
+  // Abort any in-flight stream
+  if(abortCtrl){abortCtrl.abort();abortCtrl=null;}
   clearTimeout(timer);window.speechSynthesis.cancel();
   ttsBtn.classList.remove('speaking');ttsBtn.innerHTML='<i data-lucide="volume-2" style="width:13px;height:13px"></i>';lucide.createIcons();
   inputText.value=mejoradoText.value=englishText.value='';
@@ -654,7 +646,7 @@ limpiarBtn.addEventListener('click',()=>{
   localStorage.removeItem(SK);lastText='';lastCtx='';
   clearErr();statusEl.classList.remove('on');autoPill.classList.remove('on');
   $('cnt-input').textContent='0';$('cnt-mejorado').textContent=$('cnt-english').textContent='—';
-  ['p-input','p-mejorado','p-english'].forEach(id=>$(id).classList.remove('has-content'));
+  ['p-input','p-mejorado','p-english'].forEach(id=>$(id).classList.remove('has-content','streaming'));
   diffStats.classList.remove('on');
 });
 
@@ -666,32 +658,174 @@ inputText.addEventListener('keydown',e=>{
   }
 });
 
-async function runMejorar(text){
-  if(!text){showErr('Escribe un texto para continuar.');return;}
-  clearErr();setLoading(true);lastText=text;lastCtx=activeCtx;
-  window.speechSynthesis.cancel();ttsBtn.classList.remove('speaking');
-  ttsBtn.innerHTML='<i data-lucide="volume-2" style="width:13px;height:13px"></i>';lucide.createIcons();
-  try{
-    const res=await fetch('/api/mejorar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,context:activeCtx,dialect:activeDialect})});
-    let data=null;try{data=await res.json();}catch{}
-    if(!res.ok){showErr(data?.error||'No se pudo procesar.');return;}
-    if(!data){showErr('Respuesta inválida.');return;}
-    const mejorado=data.mejorado||'',english=data.english||'';
-    mejoradoText.value=mejorado;englishText.value=english;
-    if(mejorado&&text){const{html,add,del}=computeDiff(text,mejorado);diffView.innerHTML=html;statAdd.textContent=`+${add}`;statDel.textContent=`−${del}`;diffStats.classList.toggle('on',add>0||del>0);}
-    applyDiffView();
-    $('p-mejorado').classList.add('has-content');$('p-english').classList.add('has-content');
-    syncCount(mejoradoText,'cnt-mejorado');syncCount(englishText,'cnt-english');
-    [mejoradoText,englishText,diffView].forEach(el=>{el.classList.remove('anim');void el.offsetWidth;el.classList.add('anim');});
-  }catch(e){showErr(e.message||'Error de red.');}
-  finally{setLoading(false);}
+/* ── Abort controller — cancels in-flight stream if user types again ─────── */
+let abortCtrl = null;
+
+async function runMejorar(text) {
+  if (!text) { showErr('Escribe un texto para continuar.'); return; }
+
+  // Cancel any in-flight request
+  if (abortCtrl) { abortCtrl.abort(); abortCtrl = null; }
+  abortCtrl = new AbortController();
+
+  clearErr();
+  lastText = text; lastCtx = activeCtx;
+
+  // Stop TTS
+  window.speechSynthesis.cancel();
+  ttsBtn.classList.remove('speaking');
+  ttsBtn.innerHTML = '<i data-lucide="volume-2" style="width:13px;height:13px"></i>';
+  lucide.createIcons();
+
+  // Reset output panels
+  mejoradoText.value = ''; englishText.value = '';
+  diffView.innerHTML = ''; diffView.classList.remove('visible');
+  diffStats.classList.remove('on');
+  $('cnt-mejorado').textContent = $('cnt-english').textContent = '—';
+  $('p-mejorado').classList.remove('has-content');
+  $('p-english').classList.remove('has-content');
+  mejoradoText.style.display = '';
+
+  // Show streaming indicator
+  statusEl.classList.add('on');
+  $('p-mejorado').classList.add('streaming');
+
+  let mejoradoAccum = '';
+  let englishAccum  = '';
+  let phase         = 'mejorado'; // 'mejorado' | 'english'
+  const PHASE_SEP   = '\x00PHASE:english\x00';
+  const ERR_PREFIX  = '\x00ERROR:';
+  const ERR_SUFFIX  = '\x00';
+  let   buffer      = '';  // holds partial tokens for separator detection
+
+  // Cursor span injected into panel footer to show writing state
+  function setCursor(panelId, on) {
+    const ft = document.querySelector(`#${panelId} .panel__title`);
+    if (!ft) return;
+    // panel streaming class drives the CSS ::after cursor dot
+    if (on) $(panelId).classList.add('streaming');
+    else    $(panelId).classList.remove('streaming');
+  }
+
+  try {
+    const response = await fetch('/api/mejorar', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ text, context: activeCtx, dialect: activeDialect }),
+      signal:  abortCtrl.signal,
+    });
+
+    if (!response.ok) {
+      let errMsg = 'No se pudo procesar.';
+      try { const d = await response.json(); errMsg = d?.error || errMsg; } catch {}
+      showErr(errMsg);
+      return;
+    }
+
+    const reader  = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      // Process buffer — look for phase separator or error token
+      while (buffer.length > 0) {
+        const sepIdx = buffer.indexOf(PHASE_SEP);
+        const errIdx = buffer.indexOf(ERR_PREFIX);
+
+        if (errIdx !== -1) {
+          // Flush everything before the error first
+          const before = buffer.slice(0, errIdx);
+          if (before) flushTokens(before);
+          const errEnd = buffer.indexOf(ERR_SUFFIX, errIdx + ERR_PREFIX.length);
+          if (errEnd === -1) break; // wait for more data
+          const errMsg = buffer.slice(errIdx + ERR_PREFIX.length, errEnd);
+          showErr(errMsg || 'Error al procesar.');
+          buffer = buffer.slice(errEnd + ERR_SUFFIX.length);
+          break;
+        }
+
+        if (sepIdx !== -1) {
+          // Flush everything before separator
+          const before = buffer.slice(0, sepIdx);
+          if (before) flushTokens(before);
+
+          // Switch phase
+          setCursor('p-mejorado', false);
+          $('p-mejorado').classList.add('has-content');
+          syncCount(mejoradoText, 'cnt-mejorado');
+
+          // Build diff now that mejorado is complete
+          if (mejoradoAccum && text) {
+            const { html, add, del } = computeDiff(text, mejoradoAccum);
+            diffView.innerHTML = html;
+            statAdd.textContent = `+${add}`;
+            statDel.textContent = `\u2212${del}`;
+            diffStats.classList.toggle('on', add > 0 || del > 0);
+            applyDiffView();
+          }
+
+          phase = 'english';
+          $('p-english').classList.add('streaming');
+          buffer = buffer.slice(sepIdx + PHASE_SEP.length);
+          continue;
+        }
+
+        // No special token found — safe to flush all but last 20 chars
+        // (keep a tail in case a separator is split across chunks)
+        const TAIL = 20;
+        if (buffer.length > TAIL) {
+          flushTokens(buffer.slice(0, buffer.length - TAIL));
+          buffer = buffer.slice(buffer.length - TAIL);
+        }
+        break;
+      }
+    }
+
+    // Flush remaining buffer
+    if (buffer) flushTokens(buffer);
+
+  } catch (e) {
+    if (e.name === 'AbortError') return; // user triggered new request — silent
+    showErr(e.message || 'Error de red.');
+  } finally {
+    // Cleanup streaming state
+    statusEl.classList.remove('on');
+    setCursor('p-mejorado', false);
+    setCursor('p-english', false);
+    $('p-mejorado').classList.remove('streaming');
+    $('p-english').classList.remove('streaming');
+
+    if (mejoradoAccum) {
+      $('p-mejorado').classList.add('has-content');
+      syncCount(mejoradoText, 'cnt-mejorado');
+    }
+    if (englishAccum) {
+      $('p-english').classList.add('has-content');
+      syncCount(englishText, 'cnt-english');
+    }
+
+    abortCtrl = null;
+  }
+
+  function flushTokens(tokens) {
+    if (phase === 'mejorado') {
+      mejoradoAccum += tokens;
+      mejoradoText.value = mejoradoAccum;
+      // Auto-scroll textarea to bottom
+      mejoradoText.scrollTop = mejoradoText.scrollHeight;
+    } else {
+      englishAccum += tokens;
+      englishText.value = englishAccum;
+      englishText.scrollTop = englishText.scrollHeight;
+      $('p-english').classList.add('has-content');
+    }
+  }
 }
 
-function setLoading(on){
-  statusEl.classList.toggle('on',on);
-  ['p-mejorado','p-english'].forEach(id=>$(id).classList.toggle('fetching',on));
-  if(on){mejoradoText.value=englishText.value='';diffView.innerHTML='';diffStats.classList.remove('on');$('cnt-mejorado').textContent=$('cnt-english').textContent='—';}
-}
 function showErr(msg){errorText.textContent=msg;errorBar.classList.add('on');setTimeout(()=>errorBar.classList.remove('on'),5000);}
 function clearErr(){errorBar.classList.remove('on');}
 function syncCount(ta,id){$(id).textContent=ta.value.length===0?'0':ta.value.length.toLocaleString();}
