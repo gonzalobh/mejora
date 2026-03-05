@@ -4,64 +4,614 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mejora</title>
-    <link rel="stylesheet" href="/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg: #ffffff;
+        --surface: #ffffff;
+        --surface-hover: #f9f9f8;
+        --border: #e8e8e6;
+        --text: #1a1a18;
+        --text-secondary: #6b6b67;
+        --text-placeholder: #c0c0bb;
+        --accent: #2383e2;
+        --accent-bg: #eef5fd;
+        --accent-border: #c3daf9;
+        --success: #4caf6e;
+        --error: #d94f3d;
+        --error-bg: #fef2f1;
+        --radius: 8px;
+        --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      }
+
+      html, body { height: 100%; }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 14px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .app {
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+        overflow: hidden;
+      }
+
+      /* ── Header ── */
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        height: 48px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+        gap: 12px;
+      }
+
+      .header__left { display: flex; align-items: center; gap: 10px; }
+
+      .logo { font-size: 14px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; }
+
+      .sep { width: 1px; height: 16px; background: var(--border); flex-shrink: 0; }
+
+      .header__sub { font-size: 13px; color: var(--text-secondary); }
+
+      .auto-badge {
+        display: none;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--accent);
+        background: var(--accent-bg);
+        border: 1px solid var(--accent-border);
+        border-radius: 100px;
+        padding: 3px 9px;
+      }
+      .auto-badge.on { display: flex; }
+      .auto-badge::before {
+        content: '';
+        width: 5px; height: 5px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: pulse 1s ease-in-out infinite;
+      }
+
+      /* ── Toolbar ── */
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 20px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      .toolbar__gap { flex: 1; }
+
+      .status {
+        display: none;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+      .status.on { display: flex; }
+      .status__dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: pulse 1.1s ease-in-out infinite;
+        flex-shrink: 0;
+      }
+
+      /* ── Buttons ── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: var(--radius);
+        font-family: var(--font);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.12s, border-color 0.12s, color 0.12s, opacity 0.12s;
+        border: 1px solid transparent;
+        white-space: nowrap;
+        line-height: 1;
+      }
+      .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #fff;
+        padding: 7px 13px;
+        box-shadow: var(--shadow-sm);
+      }
+      .btn-primary:hover:not(:disabled) { background: #1a72d1; }
+      .btn-primary.loading { color: transparent; position: relative; pointer-events: none; }
+      .btn-primary.loading::after {
+        content: '';
+        position: absolute;
+        inset: 0; margin: auto;
+        width: 13px; height: 13px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.65s linear infinite;
+      }
+
+      .btn-secondary {
+        background: var(--surface);
+        color: var(--text-secondary);
+        padding: 7px 11px;
+        border-color: var(--border);
+      }
+      .btn-secondary:hover:not(:disabled) { background: var(--surface-hover); color: var(--text); }
+
+      .btn-ghost {
+        background: transparent;
+        color: var(--text-secondary);
+        padding: 4px 8px;
+        font-size: 12px;
+        font-weight: 400;
+      }
+      .btn-ghost:hover:not(:disabled) { background: var(--surface-hover); color: var(--text); }
+      .btn-ghost.copied { color: var(--success); }
+
+      .btn-icon {
+        background: transparent;
+        color: var(--text-secondary);
+        padding: 5px;
+        border-radius: 6px;
+      }
+      .btn-icon:hover:not(:disabled) { background: var(--surface-hover); color: var(--text); }
+
+      /* ── Error ── */
+      .error-bar {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 20px;
+        background: var(--error-bg);
+        border-bottom: 1px solid #fad4d0;
+        color: var(--error);
+        font-size: 13px;
+        flex-shrink: 0;
+      }
+      .error-bar.on { display: flex; }
+
+      /* ── Workspace ── */
+      .workspace {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      /* ── Panel ── */
+      .panel {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+        border-right: 1px solid var(--border);
+        overflow: hidden;
+        transition: flex 0.2s ease, max-width 0.2s ease;
+      }
+      .panel:last-child { border-right: none; }
+
+      .panel.collapsed {
+        flex: 0 0 40px;
+        min-width: 40px;
+        max-width: 40px;
+      }
+
+      /* Panel header */
+      .panel__hd {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+        height: 36px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface-hover);
+        gap: 6px;
+        flex-shrink: 0;
+      }
+
+      .panel.collapsed .panel__hd {
+        flex-direction: column;
+        height: 100%;
+        padding: 10px 0;
+        justify-content: flex-start;
+        border-bottom: none;
+        cursor: pointer;
+      }
+
+      .panel__hd-left { display: flex; align-items: center; gap: 7px; flex: 1; min-width: 0; }
+      .panel.collapsed .panel__hd-left { flex-direction: column; flex: 0; gap: 8px; }
+
+      .panel__title {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text);
+        white-space: nowrap;
+      }
+      .panel.collapsed .panel__title {
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        font-size: 11px;
+        color: var(--text-secondary);
+        letter-spacing: 0.02em;
+      }
+
+      .lang-pill {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: var(--accent-bg);
+        color: var(--accent);
+        border: 1px solid var(--accent-border);
+        flex-shrink: 0;
+      }
+      .lang-pill.en { background: #f0faf4; color: #2d7a4f; border-color: #b8e5cb; }
+      .panel.collapsed .lang-pill { display: none; }
+
+      .panel__hd-right { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
+      .panel.collapsed .panel__hd-right { display: none; }
+
+      /* Panel body */
+      .panel__body {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+      }
+      .panel.collapsed .panel__body { display: none; }
+
+      textarea {
+        flex: 1;
+        width: 100%;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 14px;
+        line-height: 1.65;
+        font-weight: 400;
+        padding: 12px 16px;
+        resize: none;
+        min-height: 0;
+      }
+      textarea::placeholder { color: var(--text-placeholder); }
+      textarea[readonly] { cursor: default; }
+
+      /* Panel footer */
+      .panel__ft {
+        display: flex;
+        align-items: center;
+        padding: 5px 12px;
+        border-top: 1px solid var(--border);
+        background: var(--surface-hover);
+        flex-shrink: 0;
+      }
+      .panel.collapsed .panel__ft { display: none; }
+
+      .char-count { font-size: 11px; color: var(--text-placeholder); font-variant-numeric: tabular-nums; }
+
+      /* Skeleton */
+      .skel { display: none; flex-direction: column; gap: 9px; padding: 14px 16px; }
+      .panel.fetching .skel { display: flex; }
+      .panel.fetching textarea { display: none; }
+
+      .skel-ln {
+        height: 12px;
+        border-radius: 4px;
+        background: linear-gradient(90deg, #f2f2f0 25%, #e6e6e3 50%, #f2f2f0 75%);
+        background-size: 300% 100%;
+        animation: shimmer 1.3s infinite;
+      }
+      .skel-ln:nth-child(2) { width: 85%; }
+      .skel-ln:nth-child(3) { width: 72%; }
+      .skel-ln:nth-child(4) { width: 91%; }
+      .skel-ln:nth-child(5) { width: 60%; }
+
+      /* Animations */
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.25; } }
+      @keyframes shimmer { 0% { background-position:100% 0; } 100% { background-position:-100% 0; } }
+      @keyframes fadeUp { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+
+      .anim-in { animation: fadeUp 0.22s ease both; }
+
+      /* Responsive */
+      @media (max-width: 700px) {
+        .workspace { flex-direction: column; }
+        .panel { border-right: none; border-bottom: 1px solid var(--border); }
+        .panel:last-child { border-bottom: none; }
+        .panel.collapsed { flex: 0 0 36px; min-width: unset; max-width: unset; }
+        .panel.collapsed .panel__hd { flex-direction: row; height: 36px; padding: 0 12px; border-bottom: 1px solid var(--border); }
+        .panel.collapsed .panel__title { writing-mode: initial; transform: none; }
+        .panel.collapsed .panel__hd-left { flex-direction: row; }
+        .header__sub { display: none; }
+      }
+    </style>
   </head>
   <body>
-    <main class="app">
-      <header class="app__header">
-        <h1>Mejora</h1>
-        <p>Mejora tu texto en español y obtén traducción al inglés.</p>
+    <div class="app">
+
+      <header class="header">
+        <div class="header__left">
+          <span class="logo">Mejora</span>
+          <div class="sep"></div>
+          <span class="header__sub">Corrección y traducción</span>
+        </div>
+        <div id="autoBadge" class="auto-badge">Auto</div>
       </header>
 
-      <section class="toolbar">
-        <button id="mejorarBtn" class="button button--primary">Mejorar y Traducir</button>
-        <button id="limpiarBtn" class="button">Limpiar</button>
-        <span id="status" class="status" role="status" aria-live="polite"></span>
-      </section>
+      <div class="toolbar">
+        <button class="btn btn-primary" id="mejorarBtn">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+            <path d="M8 2l1.3 3.9H13.4L9.8 8.1l1.3 3.9L8 9.8l-3.1 2.2 1.3-3.9L2.6 5.9H7.7z" fill="currentColor"/>
+          </svg>
+          Mejorar
+        </button>
+        <button class="btn btn-secondary" id="limpiarBtn">Limpiar</button>
+        <div class="toolbar__gap"></div>
+        <div class="status" id="statusEl">
+          <span class="status__dot"></span>
+          Procesando...
+        </div>
+      </div>
 
-      <section id="error" class="error" role="alert" aria-live="assertive"></section>
+      <div class="error-bar" id="errorBar" role="alert" aria-live="assertive">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M8 5v3.5M8 11h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span id="errorText"></span>
+      </div>
 
-      <section class="columns">
-        <article class="panel">
-          <div class="panel__header">
-            <h2>Entrada (ES)</h2>
-            <button class="button button--ghost" data-copy="inputText">Copiar</button>
+      <div class="workspace">
+
+        <!-- Panel Entrada -->
+        <div class="panel" id="p-input">
+          <div class="panel__hd">
+            <div class="panel__hd-left">
+              <span class="panel__title">Entrada</span>
+              <span class="lang-pill">ES</span>
+            </div>
+            <div class="panel__hd-right">
+              <button class="btn btn-ghost" data-copy="inputText">Copiar</button>
+            </div>
           </div>
-          <textarea
-            id="inputText"
-            placeholder="Escribe aquí tu texto original..."
-            aria-label="Texto de entrada en español"
-          ></textarea>
-        </article>
-
-        <article class="panel">
-          <div class="panel__header">
-            <h2>Texto Mejorado (ES)</h2>
-            <button class="button button--ghost" data-copy="mejoradoText">Copiar</button>
+          <div class="panel__body">
+            <textarea id="inputText" placeholder="Escribe aquí tu texto..." spellcheck="true"></textarea>
           </div>
-          <textarea
-            id="mejoradoText"
-            placeholder="Aquí aparecerá el texto mejorado..."
-            aria-label="Texto mejorado en español"
-            readonly
-          ></textarea>
-        </article>
-
-        <article class="panel">
-          <div class="panel__header">
-            <h2>Traducción Inglés (EN)</h2>
-            <button class="button button--ghost" data-copy="englishText">Copiar</button>
+          <div class="panel__ft">
+            <span class="char-count" id="cnt-input">0 car.</span>
           </div>
-          <textarea
-            id="englishText"
-            placeholder="Here the English translation will appear..."
-            aria-label="Traducción al inglés"
-            readonly
-          ></textarea>
-        </article>
-      </section>
-    </main>
+        </div>
 
-    <script src="/app.js" defer></script>
+        <!-- Panel Mejorado (colapsable) -->
+        <div class="panel collapsed" id="p-mejorado">
+          <div class="panel__hd" id="hd-mejorado">
+            <div class="panel__hd-left">
+              <span class="panel__title">Mejorado</span>
+              <span class="lang-pill">ES</span>
+            </div>
+            <div class="panel__hd-right">
+              <button class="btn btn-ghost" data-copy="mejoradoText">Copiar</button>
+              <button class="btn btn-icon" id="toggleMejorado" title="Ocultar">
+                <svg id="toggleIcon" width="15" height="15" viewBox="0 0 16 16" fill="none">
+                  <path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="panel__body">
+            <div class="skel">
+              <div class="skel-ln"></div><div class="skel-ln"></div>
+              <div class="skel-ln"></div><div class="skel-ln"></div>
+              <div class="skel-ln"></div>
+            </div>
+            <textarea id="mejoradoText" placeholder="El texto mejorado aparecerá aquí..." readonly></textarea>
+          </div>
+          <div class="panel__ft">
+            <span class="char-count" id="cnt-mejorado">—</span>
+          </div>
+        </div>
+
+        <!-- Panel Traducción -->
+        <div class="panel" id="p-english">
+          <div class="panel__hd">
+            <div class="panel__hd-left">
+              <span class="panel__title">Traducción</span>
+              <span class="lang-pill en">EN</span>
+            </div>
+            <div class="panel__hd-right">
+              <button class="btn btn-ghost" data-copy="englishText">Copiar</button>
+            </div>
+          </div>
+          <div class="panel__body">
+            <div class="skel">
+              <div class="skel-ln"></div><div class="skel-ln"></div>
+              <div class="skel-ln"></div><div class="skel-ln"></div>
+              <div class="skel-ln"></div>
+            </div>
+            <textarea id="englishText" placeholder="The English translation will appear here..." readonly></textarea>
+          </div>
+          <div class="panel__ft">
+            <span class="char-count" id="cnt-english">—</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      const $  = id => document.getElementById(id);
+      const inputText    = $('inputText');
+      const mejoradoText = $('mejoradoText');
+      const englishText  = $('englishText');
+      const mejorarBtn   = $('mejorarBtn');
+      const limpiarBtn   = $('limpiarBtn');
+      const statusEl     = $('statusEl');
+      const errorBar     = $('errorBar');
+      const errorText    = $('errorText');
+      const autoBadge    = $('autoBadge');
+      const pMejorado    = $('p-mejorado');
+      const toggleBtn    = $('toggleMejorado');
+      const toggleIcon   = $('toggleIcon');
+
+      // ── Restore
+      const STORAGE_KEY = 'mejora:last-input';
+      inputText.value = localStorage.getItem(STORAGE_KEY) || '';
+      syncCount(inputText, 'cnt-input');
+
+      // ── Panel toggle
+      let panelOpen = false;
+      const IC_LEFT  = `<path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+      const IC_RIGHT = `<path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+      function setPanel(open) {
+        panelOpen = open;
+        pMejorado.classList.toggle('collapsed', !open);
+        toggleIcon.innerHTML = open ? IC_RIGHT : IC_LEFT;
+        toggleBtn.title = open ? 'Ocultar' : 'Mostrar';
+      }
+
+      toggleBtn.addEventListener('click', () => setPanel(!panelOpen));
+
+      // Click on collapsed panel header to expand
+      $('hd-mejorado').addEventListener('click', e => {
+        if (!panelOpen && !e.target.closest('.btn')) setPanel(true);
+      });
+
+      // ── Auto-translate debounce
+      let timer = null;
+      let lastText = '';
+
+      inputText.addEventListener('input', () => {
+        localStorage.setItem(STORAGE_KEY, inputText.value);
+        syncCount(inputText, 'cnt-input');
+        clearTimeout(timer);
+        const val = inputText.value.trim();
+        if (!val) { autoBadge.classList.remove('on'); return; }
+        autoBadge.classList.add('on');
+        timer = setTimeout(() => {
+          autoBadge.classList.remove('on');
+          if (val !== lastText) runMejorar(val);
+        }, 1500);
+      });
+
+      // ── Copy
+      document.querySelectorAll('[data-copy]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const el = $(btn.dataset.copy);
+          if (!el?.value.trim()) return;
+          try {
+            await navigator.clipboard.writeText(el.value);
+            btn.textContent = '✓ Copiado';
+            btn.classList.add('copied');
+            setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 1400);
+          } catch { showErr('No se pudo copiar.'); }
+        });
+      });
+
+      // ── Clear
+      limpiarBtn.addEventListener('click', () => {
+        clearTimeout(timer);
+        inputText.value = mejoradoText.value = englishText.value = '';
+        localStorage.removeItem(STORAGE_KEY);
+        lastText = '';
+        clearErr(); hideStatus(); autoBadge.classList.remove('on');
+        $('cnt-input').textContent = '0 car.';
+        $('cnt-mejorado').textContent = $('cnt-english').textContent = '—';
+      });
+
+      // ── Mejorar button
+      mejorarBtn.addEventListener('click', () => {
+        clearTimeout(timer);
+        autoBadge.classList.remove('on');
+        runMejorar(inputText.value.trim());
+      });
+
+      // ── Core
+      async function runMejorar(text) {
+        if (!text) { showErr('Escribe un texto para continuar.'); return; }
+        clearErr();
+        setLoading(true);
+        lastText = text;
+        try {
+          const res = await fetch('/api/mejorar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text }),
+          });
+          let data = null;
+          try { data = await res.json(); } catch {}
+          if (!res.ok) { showErr(data?.error || 'No se pudo procesar la solicitud.'); return; }
+          if (!data)   { showErr('Respuesta no válida del servidor.'); return; }
+
+          mejoradoText.value = data.mejorado || '';
+          englishText.value  = data.english  || '';
+          [mejoradoText, englishText].forEach(el => {
+            el.classList.remove('anim-in');
+            void el.offsetWidth;
+            el.classList.add('anim-in');
+          });
+          syncCount(mejoradoText, 'cnt-mejorado');
+          syncCount(englishText,  'cnt-english');
+        } catch (e) {
+          showErr(e.message || 'Error de red.');
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      // ── Helpers
+      function setLoading(on) {
+        mejorarBtn.disabled = on;
+        mejorarBtn.classList.toggle('loading', on);
+        statusEl.classList.toggle('on', on);
+        ['p-mejorado', 'p-english'].forEach(id => $(id).classList.toggle('fetching', on));
+        if (on) {
+          mejoradoText.value = englishText.value = '';
+          $('cnt-mejorado').textContent = $('cnt-english').textContent = '—';
+        }
+      }
+
+      function hideStatus() { statusEl.classList.remove('on'); }
+
+      function showErr(msg) {
+        errorText.textContent = msg;
+        errorBar.classList.add('on');
+        setTimeout(() => errorBar.classList.remove('on'), 5000);
+      }
+      function clearErr() { errorBar.classList.remove('on'); }
+
+      function syncCount(ta, id) {
+        const n = ta.value.length;
+        $(id).textContent = n === 0 ? '0 car.' : `${n.toLocaleString()} car.`;
+      }
+    </script>
   </body>
 </html>
