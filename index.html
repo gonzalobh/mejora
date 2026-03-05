@@ -380,10 +380,73 @@
     .panel.has-content .empty-hint{display:none}
 
 
-    /* streaming indicator dot on panel title */
-    .panel.streaming .panel__title::after{
-      content:' ●';color:var(--a);font-size:7px;
-      vertical-align:middle;animation:pulse .8s ease-in-out infinite;
+    /* ── Panel streaming: borde glow + fondo tintado ── */
+    .panel.streaming{
+      background: var(--a-light);
+      border-color: var(--a-border);
+      box-shadow: 0 0 0 1px var(--a-border), 0 0 16px rgba(196,98,45,.12);
+      animation: panelGlow 1.8s ease-in-out infinite;
+    }
+    /* quitar el puntito del título — ya no hace falta */
+    .panel.streaming .panel__title::after{ content:none; }
+
+    @keyframes panelGlow{
+      0%,100%{ box-shadow: 0 0 0 1px var(--a-border), 0 0 10px rgba(196,98,45,.10); }
+      50%    { box-shadow: 0 0 0 1px var(--a-border), 0 0 22px rgba(196,98,45,.22); }
+    }
+
+    /* ── Botón mejorar: borde giratorio conic-gradient ── */
+    .btn-mejorar{
+      width:50%;
+      height:38px;
+      font-size:14px;
+      border-radius:var(--r-lg);
+      position: relative;
+      z-index: 0;
+    }
+    .btn-mejorar.working{
+      color: transparent;
+      pointer-events: none;
+      border-color: transparent;
+      background: var(--a);
+    }
+    .btn-mejorar.working::before{
+      content:'';
+      position:absolute;
+      inset:-2px;
+      border-radius: calc(var(--r-lg) + 2px);
+      background: conic-gradient(
+        from var(--angle, 0deg),
+        var(--a-border) 0%,
+        var(--a) 20%,
+        var(--a-dark) 40%,
+        var(--a) 60%,
+        var(--a-border) 80%,
+        var(--a-border) 100%
+      );
+      animation: spinBorder 1s linear infinite;
+      z-index:-1;
+    }
+    .btn-mejorar.working::after{
+      content:'Mejorando…';
+      position:absolute;
+      inset:2px;
+      border-radius: var(--r-lg);
+      background: var(--a);
+      color:#fff;
+      font-size:14px;
+      font-weight:500;
+      font-family:var(--font);
+      display:flex;align-items:center;justify-content:center;
+      z-index:1;
+    }
+    @keyframes spinBorder{
+      to{ --angle: 360deg; }
+    }
+    @property --angle {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
     }
 
     /* ────────────────────────────────────────
@@ -410,12 +473,6 @@
       padding:12px 18px 14px;
       flex-shrink:0;
       background:var(--paper);
-    }
-    .btn-mejorar{
-      width:50%;
-      height:38px;
-      font-size:14px;
-      border-radius:var(--r-lg);
     }
   </style>
 </head>
@@ -717,6 +774,7 @@ async function runMejorar(text) {
   // Show streaming indicator
   statusEl.classList.add('on');
   $('p-mejorado').classList.add('streaming');
+  $('mejorarBtn').classList.add('working');
 
   let mejoradoAccum = '';
   let englishAccum  = '';
@@ -826,6 +884,7 @@ async function runMejorar(text) {
     setCursor('p-english', false);
     $('p-mejorado').classList.remove('streaming');
     $('p-english').classList.remove('streaming');
+    $('mejorarBtn').classList.remove('working');
 
     if (mejoradoAccum) {
       $('p-mejorado').classList.add('has-content');
