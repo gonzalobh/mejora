@@ -401,6 +401,21 @@
     @media(max-width:860px){
       .workspace{grid-template-columns:1fr;padding:10px}
       .vdiv{display:none}
+      .btn-mejorar{width:100%}
+    }
+
+    /* ── Action bar ── */
+    .action-bar{
+      display:flex;justify-content:center;align-items:center;
+      padding:12px 18px 14px;
+      flex-shrink:0;
+      background:var(--paper);
+    }
+    .btn-mejorar{
+      width:50%;
+      height:38px;
+      font-size:14px;
+      border-radius:var(--r-lg);
     }
   </style>
 </head>
@@ -539,6 +554,15 @@
     </div>
 
   </div>
+
+  <!-- ── Botón Mejorar ── -->
+  <div class="action-bar">
+    <button class="btn btn-primary btn-mejorar" id="mejorarBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 15l-5 3.4 1.9-5.8L4 9h6.1z"/></svg>
+      Mejorar
+    </button>
+  </div>
+
 </div>
 
 <script>
@@ -597,15 +621,19 @@ document.querySelectorAll('.diff-toggle__btn').forEach(b=>{
 });
 function applyDiffView(){const has=!!mejoradoText.value;mejoradoText.style.display=(diffMode==='diff'&&has)?'none':'';diffView.classList.toggle('visible',diffMode==='diff'&&has);}
 
-/* ── Auto debounce ───────────────────────────────────────────────────────── */
+/* ── Input tracking ──────────────────────────────────────────────────────── */
 let timer=null,lastText='',lastCtx='';
 inputText.addEventListener('input',()=>{
   localStorage.setItem(SK,inputText.value);syncCount(inputText,'cnt-input');
   $('p-input').classList.toggle('has-content',!!inputText.value.trim());
-  clearTimeout(timer);const v=inputText.value.trim();
-  if(!v){autoPill.classList.remove('on');return;}
-  autoPill.classList.add('on');
-  timer=setTimeout(()=>{autoPill.classList.remove('on');if(v!==lastText||activeCtx!==lastCtx)runMejorar(v);},1500);
+});
+
+/* ── Botón Mejorar ───────────────────────────────────────────────────────── */
+$('mejorarBtn').addEventListener('click',()=>{
+  const v=inputText.value.trim();
+  if(!v){showErr('Escribe un texto para continuar.');return;}
+  clearTimeout(timer);
+  runMejorar(v);
 });
 
 /* ── Copy ────────────────────────────────────────────────────────────────── */
@@ -644,7 +672,7 @@ limpiarBtn.addEventListener('click',()=>{
   mejoradoText.style.display='';diffMode='text';
   document.querySelectorAll('.diff-toggle__btn').forEach((b,i)=>b.classList.toggle('active',i===0));
   localStorage.removeItem(SK);lastText='';lastCtx='';
-  clearErr();statusEl.classList.remove('on');autoPill.classList.remove('on');
+  clearErr();statusEl.classList.remove('on');
   $('cnt-input').textContent='0';$('cnt-mejorado').textContent=$('cnt-english').textContent='—';
   ['p-input','p-mejorado','p-english'].forEach(id=>$(id).classList.remove('has-content','streaming'));
   diffStats.classList.remove('on');
@@ -653,7 +681,7 @@ limpiarBtn.addEventListener('click',()=>{
 /* ── ⌘↵ / Ctrl↵ manual trigger ──────────────────────────────────────────── */
 inputText.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){
-    e.preventDefault();clearTimeout(timer);autoPill.classList.remove('on');
+    e.preventDefault();clearTimeout(timer);
     runMejorar(inputText.value.trim());
   }
 });
