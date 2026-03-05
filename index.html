@@ -380,7 +380,36 @@
     .panel.has-content .empty-hint{display:none}
 
 
-    /* ── Panel streaming: borde glow + fondo tintado ── */
+    /* ── Apple spinner loader ── */
+    .panel-loader{
+      display:none;
+      position:absolute;inset:0;
+      align-items:center;justify-content:center;
+      z-index:2;pointer-events:none;
+    }
+    .panel.streaming .panel-loader{ display:flex; }
+
+    .apple-spinner{
+      position:relative;
+      width:36px;height:36px;
+    }
+    .apple-spinner__blade{
+      position:absolute;
+      top:0;left:50%;
+      width:3px;height:10px;
+      margin-left:-1.5px;
+      border-radius:2px;
+      background:var(--a);
+      transform-origin:50% 18px;
+      transform:rotate(calc(30deg * var(--i)));
+      opacity:calc(0.1 + 0.9 * (var(--i) / 11));
+      animation:appleBladeIn 1s linear infinite;
+      animation-delay:calc(-1s + (1s / 12) * var(--i));
+    }
+    @keyframes appleBladeIn{
+      0%  { opacity:1; }
+      100%{ opacity:.1; }
+    }
     .panel.streaming{
       background: var(--a-light);
       border-color: var(--a-border);
@@ -567,6 +596,11 @@
         </div>
       </div>
       <div class="panel__body">
+        <div class="panel-loader" id="loader-mejorado">
+          <div class="apple-spinner">
+            <div class="apple-spinner__blade" style="--i:0"></div><div class="apple-spinner__blade" style="--i:1"></div><div class="apple-spinner__blade" style="--i:2"></div><div class="apple-spinner__blade" style="--i:3"></div><div class="apple-spinner__blade" style="--i:4"></div><div class="apple-spinner__blade" style="--i:5"></div><div class="apple-spinner__blade" style="--i:6"></div><div class="apple-spinner__blade" style="--i:7"></div><div class="apple-spinner__blade" style="--i:8"></div><div class="apple-spinner__blade" style="--i:9"></div><div class="apple-spinner__blade" style="--i:10"></div><div class="apple-spinner__blade" style="--i:11"></div>
+          </div>
+        </div>
         <div class="empty-hint">
           <div class="empty-hint__ring">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -597,6 +631,11 @@
         </div>
       </div>
       <div class="panel__body">
+        <div class="panel-loader" id="loader-english">
+          <div class="apple-spinner">
+            <div class="apple-spinner__blade" style="--i:0"></div><div class="apple-spinner__blade" style="--i:1"></div><div class="apple-spinner__blade" style="--i:2"></div><div class="apple-spinner__blade" style="--i:3"></div><div class="apple-spinner__blade" style="--i:4"></div><div class="apple-spinner__blade" style="--i:5"></div><div class="apple-spinner__blade" style="--i:6"></div><div class="apple-spinner__blade" style="--i:7"></div><div class="apple-spinner__blade" style="--i:8"></div><div class="apple-spinner__blade" style="--i:9"></div><div class="apple-spinner__blade" style="--i:10"></div><div class="apple-spinner__blade" style="--i:11"></div>
+          </div>
+        </div>
         <div class="empty-hint">
           <div class="empty-hint__ring">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -900,11 +939,14 @@ async function runMejorar(text) {
 
   function flushTokens(tokens) {
     if (phase === 'mejorado') {
+      // Hide loader as soon as first text arrives
+      if (!mejoradoAccum) $('p-mejorado').classList.remove('streaming');
       mejoradoAccum += tokens;
       mejoradoText.value = mejoradoAccum;
-      // Auto-scroll textarea to bottom
       mejoradoText.scrollTop = mejoradoText.scrollHeight;
     } else {
+      // Hide english loader as soon as first text arrives
+      if (!englishAccum) $('p-english').classList.remove('streaming');
       englishAccum += tokens;
       englishText.value = englishAccum;
       englishText.scrollTop = englishText.scrollHeight;
