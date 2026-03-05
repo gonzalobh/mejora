@@ -943,14 +943,18 @@ async function runMejorar(text) {
 
   function flushTokens(tokens) {
     if (phase === 'mejorado') {
-      // Hide loader as soon as first text arrives
-      if (!mejoradoAccum) $('p-mejorado').classList.remove('streaming');
+      if (!mejoradoAccum) {
+        $('p-mejorado').classList.add('has-content');
+        $('p-mejorado').classList.remove('streaming');
+      }
       mejoradoAccum += tokens;
       mejoradoText.value = mejoradoAccum;
       mejoradoText.scrollTop = mejoradoText.scrollHeight;
     } else {
-      // Hide english loader as soon as first text arrives
-      if (!englishAccum) $('p-english').classList.remove('streaming');
+      if (!englishAccum) {
+        $('p-english').classList.add('has-content');
+        $('p-english').classList.remove('streaming');
+      }
       englishAccum += tokens;
       englishText.value = englishAccum;
       englishText.scrollTop = englishText.scrollHeight;
