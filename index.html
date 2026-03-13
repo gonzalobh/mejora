@@ -646,16 +646,17 @@
     <div class="panel" id="p-input">
       <div class="panel__hd">
         <div class="panel__hd-left"><span class="panel__title">Entrada</span></div>
-        <div class="panel__hd-right">
-          <button class="btn btn-ghost" data-copy="inputText">Copiar</button>
-        </div>
+        <div class="panel__hd-right"></div>
       </div>
       <div class="panel__body">
         <textarea id="inputText" placeholder="Escribe aquí en español…" spellcheck="true" maxlength="2000"></textarea>
       </div>
       <div class="panel__ft" style="justify-content:space-between">
         <span class="char-count" id="cnt-input">0 / 2000</span>
-        <span class="kbd-hint"><kbd>⌘</kbd><kbd>↵</kbd> procesar</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="kbd-hint"><kbd>⌘</kbd><kbd>↵</kbd> procesar</span>
+          <button class="btn btn-ghost" data-copy="inputText">Copiar</button>
+        </div>
       </div>
     </div>
 
@@ -674,7 +675,6 @@
             <button class="diff-toggle__btn active" data-view="text">texto</button>
             <button class="diff-toggle__btn" data-view="diff">diff</button>
           </div>
-          <button class="btn btn-ghost" data-copy="mejoradoText" style="margin-left:2px">Copiar</button>
         </div>
       </div>
       <div class="panel__body">
@@ -695,7 +695,10 @@
         <textarea id="mejoradoText" readonly></textarea>
         <div class="diff-view" id="diffView"></div>
       </div>
-      <div class="panel__ft"><span class="char-count" id="cnt-mejorado">—</span></div>
+      <div class="panel__ft" style="justify-content:space-between">
+        <span class="char-count" id="cnt-mejorado">—</span>
+        <button class="btn btn-ghost" data-copy="mejoradoText">Copiar</button>
+      </div>
     </div>
 
     <!-- Panel: Traducción -->
@@ -705,12 +708,7 @@
           <span class="panel__title">Traducción</span>
           <span class="flag-badge" id="flagBadge">🇺🇸</span>
         </div>
-        <div class="panel__hd-right">
-          <button class="btn-icon" id="ttsBtn" title="Escuchar en inglés">
-            <i data-lucide="volume-2" style="width:13px;height:13px"></i>
-          </button>
-          <button class="btn btn-ghost" data-copy="englishText">Copiar</button>
-        </div>
+        <div class="panel__hd-right"></div>
       </div>
       <div class="panel__body">
         <div class="panel-loader" id="loader-english">
@@ -728,7 +726,10 @@
         </div>
         <textarea id="englishText" readonly></textarea>
       </div>
-      <div class="panel__ft"><span class="char-count" id="cnt-english">—</span></div>
+      <div class="panel__ft" style="justify-content:space-between">
+        <span class="char-count" id="cnt-english">—</span>
+        <button class="btn btn-ghost" data-copy="englishText">Copiar</button>
+      </div>
     </div>
 
   </div>
@@ -774,7 +775,7 @@ const limpiarBtn=$('limpiarBtn');
 const statusEl=$('statusEl'),errorBar=$('errorBar'),errorText=$('errorText');
 const autoPill=$('autoPill'),diffView=$('diffView');
 const diffStats=$('diffStats'),statAdd=$('statAdd'),statDel=$('statDel');
-const ttsBtn=$('ttsBtn'),flagBadge=$('flagBadge');
+const ttsBtn=null,flagBadge=$('flagBadge');
 const SK='mejora:last-input';
 const HIST_SK='mejora:historial';
 const MAX_CHARS=2000;
@@ -856,27 +857,10 @@ document.querySelectorAll('[data-copy]').forEach(b=>{
   });
 });
 
-/* ── TTS ─────────────────────────────────────────────────────────────────── */
-let currentUtterance=null;
-ttsBtn.addEventListener('click',()=>{
-  const text=englishText.value.trim();if(!text)return;
-  if(window.speechSynthesis.speaking){window.speechSynthesis.cancel();ttsBtn.classList.remove('speaking');ttsBtn.innerHTML='<i data-lucide="volume-2" style="width:13px;height:13px"></i>';lucide.createIcons();currentUtterance=null;return;}
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang=activeDialect==='uk'?'en-GB':'en-US';u.rate=0.95;
-  const vs=window.speechSynthesis.getVoices(),lc=u.lang;
-  const v=vs.find(x=>x.lang===lc&&x.localService)||vs.find(x=>x.lang===lc)||vs.find(x=>x.lang.startsWith('en'));
-  if(v)u.voice=v;
-  u.onstart=()=>{ttsBtn.classList.add('speaking');ttsBtn.innerHTML='<i data-lucide="volume-x" style="width:13px;height:13px"></i>';lucide.createIcons();};
-  u.onend=u.onerror=()=>{ttsBtn.classList.remove('speaking');ttsBtn.innerHTML='<i data-lucide="volume-2" style="width:13px;height:13px"></i>';lucide.createIcons();currentUtterance=null;};
-  currentUtterance=u;window.speechSynthesis.speak(u);
-});
-window.speechSynthesis.onvoiceschanged=()=>{};
-
 /* ── Limpiar ─────────────────────────────────────────────────────────────── */
 limpiarBtn.addEventListener('click',()=>{
   if(abortCtrl){abortCtrl.abort();abortCtrl=null;}
   clearTimeout(timer);window.speechSynthesis.cancel();
-  ttsBtn.classList.remove('speaking');ttsBtn.innerHTML='<i data-lucide="volume-2" style="width:13px;height:13px"></i>';lucide.createIcons();
   inputText.value=mejoradoText.value=englishText.value='';
   updateDynamicFontSize();
   diffView.innerHTML='';diffView.classList.remove('visible');
@@ -910,12 +894,6 @@ async function runMejorar(text) {
 
   clearErr();
   lastText = text; lastCtx = activeCtx;
-
-  // Stop TTS
-  window.speechSynthesis.cancel();
-  ttsBtn.classList.remove('speaking');
-  ttsBtn.innerHTML = '<i data-lucide="volume-2" style="width:13px;height:13px"></i>';
-  lucide.createIcons();
 
   // Reset output panels
   mejoradoText.value = ''; englishText.value = '';
