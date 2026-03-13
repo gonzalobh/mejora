@@ -499,11 +499,87 @@
       .btn-mejorar{width:100%}
     }
 
-    /* ── Action bar ── */
+    .char-limit-warn { color: var(--red) !important; }
+    .char-limit-near { color: #d97706 !important; }
+
+    /* ── Action bar with Limpiar next to Procesar ── */
     .action-bar{
       display:flex;justify-content:center;align-items:center;
       padding:12px 18px 14px;
       flex-shrink:0;
+      background:var(--paper);
+      gap:8px;
+    }
+
+    /* ── Historial Modal ── */
+    .modal-overlay{
+      display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,.35);backdrop-filter:blur(3px);
+      z-index:100;align-items:center;justify-content:center;
+    }
+    .modal-overlay.on{display:flex}
+    .modal{
+      background:var(--white);border-radius:var(--r-xl);
+      box-shadow:0 16px 48px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.07);
+      width:min(680px,94vw);max-height:80vh;
+      display:flex;flex-direction:column;
+      animation:fadeUp .18s ease both;
+    }
+    .modal__hd{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:16px 20px 12px;
+      border-bottom:1px solid var(--border);flex-shrink:0;
+    }
+    .modal__title{font-size:14px;font-weight:600;letter-spacing:-.3px}
+    .modal__close{
+      display:flex;align-items:center;justify-content:center;
+      width:28px;height:28px;border-radius:var(--r);
+      border:none;background:transparent;cursor:pointer;color:var(--ink-3);
+      transition:all .12s;
+    }
+    .modal__close:hover{background:var(--sand);color:var(--ink)}
+    .modal__body{overflow-y:auto;flex:1;padding:12px}
+    .modal__empty{
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      padding:40px;gap:10px;color:var(--ink-3);font-size:13px;
+    }
+    .hist-item{
+      border:1px solid var(--border);border-radius:var(--r-lg);
+      margin-bottom:8px;overflow:hidden;
+      transition:box-shadow .14s;
+    }
+    .hist-item:hover{box-shadow:var(--sh-lift)}
+    .hist-item__hd{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:8px 12px;background:var(--sand);
+      border-bottom:1px solid var(--border);
+    }
+    .hist-item__meta{font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+    .hist-item__ctx{
+      display:inline-flex;height:18px;padding:0 7px;align-items:center;
+      background:var(--a-light);color:var(--a-dark);border:1px solid var(--a-border);
+      border-radius:var(--r-f);font-size:10.5px;font-weight:500;font-family:var(--mono);
+    }
+    .hist-item__body{
+      display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;
+    }
+    .hist-col{
+      padding:10px 12px;font-size:12px;line-height:1.6;
+      color:var(--ink);overflow:hidden;
+    }
+    .hist-col+.hist-col{border-left:1px solid var(--border)}
+    .hist-col__label{
+      font-size:10px;font-weight:500;text-transform:uppercase;
+      letter-spacing:.06em;color:var(--ink-3);font-family:var(--mono);
+      margin-bottom:4px;
+    }
+    .hist-col__text{
+      display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
+      overflow:hidden;word-break:break-word;
+    }
+    .hist-item__ft{
+      display:flex;align-items:center;justify-content:flex-end;gap:6px;
+      padding:6px 12px;border-top:1px solid var(--border);
       background:var(--paper);
     }
   </style>
@@ -526,10 +602,10 @@
 
     <div class="chips">
       <button class="chip active" data-ctx="general">General</button>
-      <button class="chip" data-ctx="email">✉︎ Email</button>
-      <button class="chip" data-ctx="slack">⚡ Slack</button>
+      <button class="chip" data-ctx="email">Email</button>
       <button class="chip" data-ctx="formal">Formal</button>
       <button class="chip" data-ctx="report">Reporte</button>
+      <button class="chip" data-ctx="slack">Slack</button>
     </div>
 
     <div class="topbar__gap"></div>
@@ -548,7 +624,10 @@
       Procesando…
     </div>
 
-    <button class="btn-topbar-action" id="limpiarBtn">Limpiar</button>
+    <button class="btn-topbar-action" id="historialBtn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Historial
+    </button>
   </div>
 
   <!-- ── Error ── -->
@@ -572,10 +651,10 @@
         </div>
       </div>
       <div class="panel__body">
-        <textarea id="inputText" placeholder="Escribe aquí en español…" spellcheck="true"></textarea>
+        <textarea id="inputText" placeholder="Escribe aquí en español…" spellcheck="true" maxlength="2000"></textarea>
       </div>
       <div class="panel__ft" style="justify-content:space-between">
-        <span class="char-count" id="cnt-input">0</span>
+        <span class="char-count" id="cnt-input">0 / 2000</span>
         <span class="kbd-hint"><kbd>⌘</kbd><kbd>↵</kbd> procesar</span>
       </div>
     </div>
@@ -654,12 +733,28 @@
 
   </div>
 
-  <!-- ── Botón Mejorar ── -->
+  <!-- ── Botón Mejorar + Limpiar ── -->
   <div class="action-bar">
     <button class="btn btn-primary btn-mejorar" id="mejorarBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 15l-5 3.4 1.9-5.8L4 9h6.1z"/></svg>
       Mejorar
     </button>
+    <button class="btn btn-subtle" id="limpiarBtn" style="flex-shrink:0">
+      Limpiar
+    </button>
+  </div>
+
+  <!-- ── Historial Modal ── -->
+  <div class="modal-overlay" id="historialOverlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Historial">
+      <div class="modal__hd">
+        <span class="modal__title">Historial</span>
+        <button class="modal__close" id="historialClose" aria-label="Cerrar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal__body" id="historialBody"></div>
+    </div>
   </div>
 
 </div>
@@ -681,9 +776,13 @@ const autoPill=$('autoPill'),diffView=$('diffView');
 const diffStats=$('diffStats'),statAdd=$('statAdd'),statDel=$('statDel');
 const ttsBtn=$('ttsBtn'),flagBadge=$('flagBadge');
 const SK='mejora:last-input';
-inputText.value=localStorage.getItem(SK)||'';
+const HIST_SK='mejora:historial';
+const MAX_CHARS=2000;
+
+// Never restore textarea from localStorage on page load
+inputText.value='';
 syncCount(inputText,'cnt-input');
-if(inputText.value.trim())$('p-input').classList.add('has-content');
+// (no has-content on load)
 
 /* ── Dialect ─────────────────────────────────────────────────────────────── */
 let activeDialect='us';
@@ -722,10 +821,23 @@ function applyDiffView(){const has=!!mejoradoText.value;mejoradoText.style.displ
 
 /* ── Input tracking ──────────────────────────────────────────────────────── */
 let timer=null,lastText='',lastCtx='';
+
+function updateDynamicFontSize(){
+  const len=inputText.value.length;
+  // 18px at 0 chars → 13px at 2000 chars, smooth curve
+  const minPx=13.5,maxPx=20;
+  const t=Math.min(len/600,1); // reaches min at ~600 chars
+  const size=maxPx - (maxPx-minPx)*t;
+  inputText.style.fontSize=size.toFixed(1)+'px';
+}
+
 inputText.addEventListener('input',()=>{
-  localStorage.setItem(SK,inputText.value);syncCount(inputText,'cnt-input');
+  syncCount(inputText,'cnt-input');
   $('p-input').classList.toggle('has-content',!!inputText.value.trim());
+  updateDynamicFontSize();
 });
+
+updateDynamicFontSize();
 
 /* ── Botón Mejorar ───────────────────────────────────────────────────────── */
 $('mejorarBtn').addEventListener('click',()=>{
@@ -762,17 +874,18 @@ window.speechSynthesis.onvoiceschanged=()=>{};
 
 /* ── Limpiar ─────────────────────────────────────────────────────────────── */
 limpiarBtn.addEventListener('click',()=>{
-  // Abort any in-flight stream
   if(abortCtrl){abortCtrl.abort();abortCtrl=null;}
   clearTimeout(timer);window.speechSynthesis.cancel();
   ttsBtn.classList.remove('speaking');ttsBtn.innerHTML='<i data-lucide="volume-2" style="width:13px;height:13px"></i>';lucide.createIcons();
   inputText.value=mejoradoText.value=englishText.value='';
+  updateDynamicFontSize();
   diffView.innerHTML='';diffView.classList.remove('visible');
   mejoradoText.style.display='';diffMode='text';
   document.querySelectorAll('.diff-toggle__btn').forEach((b,i)=>b.classList.toggle('active',i===0));
   localStorage.removeItem(SK);lastText='';lastCtx='';
   clearErr();statusEl.classList.remove('on');
-  $('cnt-input').textContent='0';$('cnt-mejorado').textContent=$('cnt-english').textContent='—';
+  syncCount(inputText,'cnt-input');
+  $('cnt-mejorado').textContent=$('cnt-english').textContent='—';
   ['p-input','p-mejorado','p-english'].forEach(id=>$(id).classList.remove('has-content','streaming'));
   diffStats.classList.remove('on');
 });
@@ -938,6 +1051,17 @@ async function runMejorar(text) {
     $('p-english').classList.remove('streaming');
     $('mejorarBtn').classList.remove('working');
 
+    // Save to historial if we got a result
+    if (mejoradoAccum) {
+      addHistorialEntry({
+        ts: new Date().toISOString(),
+        ctx: lastCtx,
+        input: text,
+        mejorado: mejoradoAccum,
+        english: englishAccum || '',
+      });
+    }
+
     abortCtrl = null;
   }
 
@@ -965,7 +1089,94 @@ async function runMejorar(text) {
 
 function showErr(msg){errorText.textContent=msg;errorBar.classList.add('on');setTimeout(()=>errorBar.classList.remove('on'),5000);}
 function clearErr(){errorBar.classList.remove('on');}
-function syncCount(ta,id){$(id).textContent=ta.value.length===0?'0':ta.value.length.toLocaleString();}
+function syncCount(ta,id){
+  const el=$(id);
+  if(!el)return;
+  if(ta===inputText){
+    const len=ta.value.length;
+    el.textContent=`${len} / ${MAX_CHARS}`;
+    el.classList.toggle('char-limit-warn',len>=MAX_CHARS);
+    el.classList.toggle('char-limit-near',len>=MAX_CHARS*0.85&&len<MAX_CHARS);
+  } else {
+    el.textContent=ta.value.length===0?'0':ta.value.length.toLocaleString();
+  }
+}
+
+/* ── Historial ────────────────────────────────────────────────────────────── */
+const HIST_KEY='mejora:historial';
+const MAX_HIST=30;
+
+function getHistorial(){
+  try{return JSON.parse(localStorage.getItem(HIST_KEY)||'[]');}catch{return[];}
+}
+function saveHistorial(items){
+  localStorage.setItem(HIST_KEY,JSON.stringify(items));
+}
+function addHistorialEntry(entry){
+  const items=getHistorial();
+  items.unshift(entry);
+  if(items.length>MAX_HIST)items.length=MAX_HIST;
+  saveHistorial(items);
+}
+
+function fmtDate(iso){
+  const d=new Date(iso);
+  return d.toLocaleDateString('es',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+}
+
+function renderHistorial(){
+  const items=getHistorial();
+  const body=$('historialBody');
+  if(!items.length){
+    body.innerHTML=`<div class="modal__empty"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Aún no hay textos mejorados</span></div>`;
+    return;
+  }
+  const e=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  body.innerHTML=items.map((it,i)=>`
+    <div class="hist-item">
+      <div class="hist-item__hd">
+        <span class="hist-item__meta">${fmtDate(it.ts)}</span>
+        <span class="hist-item__ctx">${e(it.ctx||'general')}</span>
+      </div>
+      <div class="hist-item__body">
+        <div class="hist-col"><div class="hist-col__label">Entrada</div><div class="hist-col__text">${e(it.input)}</div></div>
+        <div class="hist-col"><div class="hist-col__label">Mejorado</div><div class="hist-col__text">${e(it.mejorado)}</div></div>
+        <div class="hist-col"><div class="hist-col__label">Traducción</div><div class="hist-col__text">${e(it.english)}</div></div>
+      </div>
+      <div class="hist-item__ft">
+        <button class="btn btn-ghost" data-hist-use="${i}" style="font-size:11.5px">Usar entrada</button>
+        <button class="btn btn-subtle" data-hist-copy="${i}" style="font-size:11.5px;height:28px">Copiar mejorado</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Wire buttons
+  body.querySelectorAll('[data-hist-use]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const it=items[+b.dataset.histUse];
+      inputText.value=it.input;
+      syncCount(inputText,'cnt-input');
+      updateDynamicFontSize();
+      $('p-input').classList.toggle('has-content',!!it.input.trim());
+      closeHistorial();
+    });
+  });
+  body.querySelectorAll('[data-hist-copy]').forEach(b=>{
+    b.addEventListener('click',async()=>{
+      const it=items[+b.dataset.histCopy];
+      try{await navigator.clipboard.writeText(it.mejorado);b.textContent='✓ Copiado';setTimeout(()=>{b.textContent='Copiar mejorado';},1400);}
+      catch{}
+    });
+  });
+}
+
+function openHistorial(){renderHistorial();$('historialOverlay').classList.add('on');}
+function closeHistorial(){$('historialOverlay').classList.remove('on');}
+
+$('historialBtn').addEventListener('click',openHistorial);
+$('historialClose').addEventListener('click',closeHistorial);
+$('historialOverlay').addEventListener('click',e=>{if(e.target===$('historialOverlay'))closeHistorial();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHistorial();});
 </script>
 </body>
 </html>
